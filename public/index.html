@@ -671,7 +671,7 @@ async function openSheet(id){
   }
   const items = menuCache[id];
   const cur = currencyFor(b.city_id);
-  document.getElementById('sheetMenu').innerHTML = items.length
+  const menuHtml = items.length
     ? items.map(m => `
         <div class="menu-item">
           <div><div class="name">${m.title}</div><div class="desc2">${m.description||''}</div></div>
@@ -679,6 +679,7 @@ async function openSheet(id){
         </div>
       `).join('')
     : `<div class="empty">Bu mekan için henüz menü eklenmemiş.</div>`;
+  document.getElementById('sheetMenu').innerHTML = menuHtml + mapRowHtml(b.lat, b.lng);
 }
 document.getElementById('overlay').addEventListener('click', e => { if(e.target.id==='overlay') closeOverlay('overlay'); });
 
@@ -739,20 +740,24 @@ function openAttractionSheet(id){
     .split(/\n\s*\n/)
     .map(p => `<p style="font-size:14px; line-height:1.7; color:var(--ink); margin:0 0 14px;">${p.trim()}</p>`)
     .join('');
-  const mapHtml = (a.lat && a.lng) ? `
-    <div class="map-row">
-      <div class="map-embed" onclick="window.open('https://maps.google.com/maps?q=${a.lat},${a.lng}&z=16','_blank')" title="Haritada aç">
-        <iframe src="https://maps.google.com/maps?q=${a.lat},${a.lng}&z=15&output=embed" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
-      </div>
-      <button class="map-directions-btn" onclick="getDirections(${a.lat}, ${a.lng})">📍 Yol tarifi al</button>
-    </div>
-  ` : '';
   document.getElementById('sheetMenu').innerHTML = `
     ${storyHtml}
     ${gallery}
-    ${mapHtml}
+    ${mapRowHtml(a.lat, a.lng)}
   `;
   openOverlay('overlay');
+}
+
+function mapRowHtml(lat, lng){
+  if(!lat || !lng) return '';
+  return `
+    <div class="map-row">
+      <div class="map-embed" onclick="window.open('https://maps.google.com/maps?q=${lat},${lng}&z=16','_blank')" title="Haritada aç">
+        <iframe src="https://maps.google.com/maps?q=${lat},${lng}&z=15&output=embed" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+      </div>
+      <button class="map-directions-btn" onclick="getDirections(${lat}, ${lng})">📍 Yol tarifi al</button>
+    </div>
+  `;
 }
 
 function getDirections(lat, lng){
