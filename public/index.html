@@ -3,6 +3,9 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+<meta http-equiv="Pragma" content="no-cache" />
+<meta http-equiv="Expires" content="0" />
 <title>Nook — Bugün Nereye Gidilir?</title>
 <style>
   :root{
@@ -471,7 +474,10 @@ function renderGrid(){
   grid.innerHTML = list.map(businessCardHtml).join('');
   wireBusinessGrid(list);
 }
-document.getElementById('searchInput').addEventListener('input', () => { if(currentView==='discover') renderGrid(); });
+document.getElementById('searchInput').addEventListener('input', () => {
+  if(currentView==='discover') renderGrid();
+  if(currentView==='lists') renderListsGrid();
+});
 
 async function openSheet(id){
   const b = businesses.find(x=>x.id===id);
@@ -505,20 +511,42 @@ async function openSheet(id){
 document.getElementById('overlay').addEventListener('click', e => { if(e.target.id==='overlay') closeOverlay('overlay'); });
 
 // ---------- Listeler (herkese açık koleksiyonlar) ----------
+let publicCollections = [];
+let publicCollectionsLoaded = false;
+
 async function renderListsView(){
   document.getElementById('discoverFilters').style.display = 'none';
   document.getElementById('featuredSection').style.display = 'none';
   document.getElementById('backLinkWrap').style.display = 'none';
-  document.getElementById('listTitle').textContent = 'Herkese Açık Listeler';
 
-  const { data, error } = await sb.from('collections').select('*, collection_items(count)').eq('is_public', true).order('created_at', {ascending:false});
+  if(!publicCollectionsLoaded){
+    const { data, error } = await sb.from('collections').select('*, collection_items(count)').eq('is_public', true).order('created_at', {ascending:false});
+    if(error){ document.getElementById('grid').innerHTML = `<div class="empty">Listeler yüklenemedi.</div>`; return; }
+    publicCollections = data || [];
+    publicCollectionsLoaded = true;
+  }
+  renderListsGrid();
+}
+
+function renderListsGrid(){
+  const q = document.getElementById('searchInput').value.trim().toLowerCase();
+  let list = publicCollections;
+  if(q){
+    list = list.filter(c =>
+      c.name.toLowerCase().includes(q) || (c.curator_name||'').toLowerCase().includes(q) || (c.description||'').toLowerCase().includes(q)
+    );
+  }
+  document.getElementById('listTitle').textContent = 'Herkese Açık Listeler';
+  document.getElementById('listCount').textContent = `${list.length} liste`;
+
   const grid = document.getElementById('grid');
-  document.getElementById('listCount').textContent = error ? '' : `${(data||[]).length} liste`;
-  if(error || !data || !data.length){
-    grid.innerHTML = `<div class="empty">Henüz herkese açık bir liste yok. İlk listeyi siz oluşturun!</div>`;
+  if(!list.length){
+    grid.innerHTML = publicCollections.length
+      ? `<div class="empty">Aramanla eşleşen liste bulunamadı.</div>`
+      : `<div class="empty">Henüz herkese açık bir liste yok. İlk listeyi siz oluşturun!</div>`;
     return;
   }
-  grid.innerHTML = data.map(c => `
+  grid.innerHTML = list.map(c => `
     <div class="list-card" data-id="${c.id}">
       <h3>📚 ${c.name}</h3>
       <div class="curator">${c.curator_name ? 'küratör: ' + c.curator_name : ''}</div>
@@ -591,6 +619,7 @@ document.getElementById('createListBtn').onclick = async () => {
   }).select().maybeSingle();
   if(error){ msg.innerHTML = `<div class="msg error">${error.message}</div>`; return; }
   myCollections.unshift(col);
+  publicCollectionsLoaded = false; // yeni liste eklendi, Listeler görünümü yenilensin
   await addToCollection(col.id);
 };
 
