@@ -3,97 +3,137 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>biMekan</title>
+<title>biMekan — Bugün Nereye Gidilir?</title>
 <style>
   :root{
-    --bg:#f6f5f2; --card:#ffffff; --ink:#1c1b19; --muted:#6b6660;
-    --accent:#e2622a; --line:#e9e6e0;
+    --bg:#141210; --bg-soft:#1c1a16; --card:#221f1a; --line:#33302a;
+    --ink:#f5f1e8; --muted:#a79f8f; --gold:#e0b04c; --coral:#e2683f; --teal:#4fa695;
   }
   *{box-sizing:border-box}
+  html{scroll-behavior:smooth;}
   body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;}
-  header{
-    padding:28px 20px 20px; background:linear-gradient(135deg,#20201e,#3a2a20);
-    color:#fff; position:sticky; top:0; z-index:5;
-  }
-  .brand{display:flex; align-items:center; gap:10px; margin-bottom:14px;}
-  .logo{width:34px;height:34px;border-radius:9px;background:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:800;}
-  .brand h1{font-size:20px; margin:0; letter-spacing:-0.02em;}
-  .brand small{display:block; opacity:.65; font-weight:400; font-size:12px; margin-top:2px;}
-  .search{
-    display:flex; gap:8px; background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.14);
-    border-radius:14px; padding:10px 14px; align-items:center;
-  }
-  .search input{flex:1;background:none;border:none;outline:none;color:#fff;font-size:14px;}
-  .search input::placeholder{color:rgba(255,255,255,.5)}
-  .tabs{display:flex; gap:8px; margin-top:16px; overflow-x:auto; padding-bottom:2px;}
-  .tab{
-    flex:none; padding:7px 14px; border-radius:999px; font-size:13px; cursor:pointer;
-    background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.14); color:#fff; white-space:nowrap;
-    transition:.15s;
-  }
-  .tab.active{background:var(--accent); border-color:var(--accent); font-weight:600;}
 
-  main{max-width:920px; margin:0 auto; padding:20px;}
-  .section-title{font-size:14px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.04em; margin:22px 4px 12px;}
-  .grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:14px;}
+  /* ---------- header ---------- */
+  header{
+    padding:22px 20px 16px; position:sticky; top:0; z-index:10;
+    background:linear-gradient(180deg, var(--bg) 70%, transparent);
+  }
+  .topbar{display:flex; align-items:center; justify-content:space-between; margin-bottom:18px;}
+  .brand{display:flex; align-items:center; gap:10px;}
+  .logo{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--gold),var(--coral));display:flex;align-items:center;justify-content:center;font-weight:800;color:#1a1712;font-size:14px;}
+  .brand-text h1{font-size:18px; margin:0; letter-spacing:-0.02em;}
+  .brand-text small{color:var(--muted); font-size:11px;}
+  .tagline{font-family:Georgia,'Times New Roman',serif; font-style:italic; font-size:26px; margin:4px 0 16px; letter-spacing:-0.01em;}
+  .tagline b{color:var(--gold); font-style:normal;}
+
+  .search{
+    display:flex; gap:10px; background:var(--bg-soft); border:1px solid var(--line);
+    border-radius:14px; padding:12px 16px; align-items:center; margin-bottom:16px;
+  }
+  .search input{flex:1;background:none;border:none;outline:none;color:var(--ink);font-size:14px;}
+  .search input::placeholder{color:var(--muted)}
+
+  .row-scroll{display:flex; gap:8px; overflow-x:auto; padding-bottom:4px; -ms-overflow-style:none; scrollbar-width:none;}
+  .row-scroll::-webkit-scrollbar{display:none;}
+  .city-tab{
+    flex:none; padding:6px 4px; font-size:13px; color:var(--muted); cursor:pointer;
+    border-bottom:2px solid transparent; white-space:nowrap; font-weight:600;
+  }
+  .city-tab.active{color:var(--ink); border-color:var(--gold);}
+  .cat-chip{
+    flex:none; padding:6px 13px; border-radius:999px; font-size:12.5px; cursor:pointer;
+    background:var(--bg-soft); border:1px solid var(--line); color:var(--muted); white-space:nowrap; margin-top:10px;
+  }
+  .cat-chip.active{background:var(--gold); border-color:var(--gold); color:#1a1712; font-weight:700;}
+
+  main{max-width:1040px; margin:0 auto; padding:6px 20px 40px;}
+  .section-title{display:flex; align-items:center; gap:8px; font-size:13px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.06em; margin:30px 2px 14px;}
+  .section-title .n{color:var(--ink); text-transform:none; font-weight:400; letter-spacing:0; font-size:12px;}
+
+  /* ---------- featured carousel ---------- */
+  .featured-row{display:flex; gap:14px; overflow-x:auto; padding:4px 2px 10px; -ms-overflow-style:none; scrollbar-width:none;}
+  .featured-row::-webkit-scrollbar{display:none;}
+  .feat-card{
+    flex:none; width:270px; height:190px; border-radius:18px; position:relative; overflow:hidden; cursor:pointer;
+    background-size:cover; background-position:center; box-shadow:0 10px 30px rgba(0,0,0,.35);
+  }
+  .feat-card::after{content:''; position:absolute; inset:0; background:linear-gradient(180deg, rgba(0,0,0,0) 35%, rgba(0,0,0,.85) 100%);}
+  .feat-badge{position:absolute; top:10px; left:10px; z-index:2; background:rgba(20,18,16,.7); backdrop-filter:blur(4px); color:var(--gold); font-size:11px; font-weight:700; padding:4px 10px; border-radius:999px;}
+  .feat-info{position:absolute; bottom:0; left:0; right:0; padding:14px; z-index:2;}
+  .feat-info h3{margin:0 0 3px; font-size:16px;}
+  .feat-info .sub{font-size:12px; color:#e6e1d6; opacity:.9;}
+
+  /* ---------- grid ---------- */
+  .grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(230px,1fr)); gap:16px;}
   .card{
     background:var(--card); border:1px solid var(--line); border-radius:16px; overflow:hidden; cursor:pointer;
     transition:.15s; display:flex; flex-direction:column;
   }
-  .card:hover{transform:translateY(-2px); box-shadow:0 8px 24px rgba(0,0,0,.08);}
-  .card .cover{height:120px; display:flex; align-items:center; justify-content:center; font-size:34px; color:#fff; background-size:cover; background-position:center;}
-  .card .body{padding:14px;}
-  .card .cat{display:inline-block; font-size:11px; font-weight:700; color:var(--accent); background:#fdeee5; padding:3px 9px; border-radius:999px; margin-bottom:8px;}
-  .card h3{margin:0 0 4px; font-size:16px;}
-  .card p{margin:0; font-size:13px; color:var(--muted); line-height:1.4;}
-  .card .meta{display:flex; gap:6px; align-items:center; margin-top:10px; font-size:12px; color:var(--muted);}
+  .card:hover{transform:translateY(-3px); border-color:var(--gold);}
+  .card .cover{height:130px; background-size:cover; background-position:center; position:relative;}
+  .card .rate{position:absolute; top:8px; right:8px; background:rgba(20,18,16,.75); color:var(--gold); font-size:11px; font-weight:700; padding:3px 8px; border-radius:999px; display:flex; gap:3px; align-items:center;}
+  .card .body{padding:13px;}
+  .card .cat-row{display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;}
+  .card .cat{font-size:10.5px; font-weight:700; color:var(--coral); text-transform:uppercase; letter-spacing:.03em;}
+  .card .price{font-size:12px; color:var(--gold); font-weight:700;}
+  .card h3{margin:0 0 3px; font-size:15px;}
+  .card p{margin:0; font-size:12.5px; color:var(--muted); line-height:1.4; min-height:2.6em;}
+  .card .meta{display:flex; gap:5px; align-items:center; margin-top:10px; font-size:11.5px; color:var(--muted);}
 
   .empty{padding:40px 10px; text-align:center; color:var(--muted); font-size:14px;}
 
-  .overlay{position:fixed; inset:0; background:rgba(20,18,15,.5); display:none; align-items:flex-end; justify-content:center; z-index:20;}
+  /* ---------- detail sheet ---------- */
+  .overlay{position:fixed; inset:0; background:rgba(8,7,6,.7); display:none; align-items:flex-end; justify-content:center; z-index:20;}
   .overlay.open{display:flex;}
   .sheet{
-    background:#fff; width:100%; max-width:520px; border-radius:20px 20px 0 0; padding:22px 22px 28px;
-    animation:up .2s ease-out; max-height:80vh; overflow-y:auto;
+    background:var(--bg-soft); width:100%; max-width:560px; border-radius:22px 22px 0 0; overflow-y:auto; max-height:88vh;
+    animation:up .2s ease-out; border:1px solid var(--line); border-bottom:none;
   }
   @keyframes up{from{transform:translateY(24px);opacity:0} to{transform:translateY(0);opacity:1}}
-  .sheet-cover{height:100px; border-radius:14px; margin-bottom:14px; display:flex;align-items:center;justify-content:center;font-size:32px;color:#fff; background-size:cover; background-position:center;}
-  .sheet h2{margin:0 0 2px; font-size:20px;}
-  .sheet .loc{color:var(--muted); font-size:13px; margin-bottom:16px;}
-  .menu-item{display:flex; justify-content:space-between; gap:12px; padding:12px 0; border-top:1px solid var(--line);}
+  .sheet-cover{height:170px; background-size:cover; background-position:center; position:relative;}
+  .sheet-cover::after{content:''; position:absolute; inset:0; background:linear-gradient(180deg, rgba(0,0,0,0) 50%, var(--bg-soft) 100%);}
+  .sheet-body{padding:0 22px 26px;}
+  .sheet h2{margin:0 0 6px; font-size:22px;}
+  .sheet-tags{display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-bottom:6px; font-size:12.5px; color:var(--muted);}
+  .sheet-tags .rate{color:var(--gold); font-weight:700;}
+  .sheet-tags .price{color:var(--gold);}
+  .sheet .desc{font-size:13px; color:var(--muted); margin:10px 0 18px; line-height:1.5;}
+  .menu-title{font-size:12px; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); font-weight:700; margin-bottom:8px;}
+  .menu-item{display:flex; justify-content:space-between; gap:12px; padding:11px 0; border-top:1px solid var(--line);}
   .menu-item:first-of-type{border-top:none;}
   .menu-item .name{font-weight:600; font-size:14px;}
-  .menu-item .desc{font-size:12px; color:var(--muted); margin-top:2px;}
-  .menu-item .price{font-weight:700; font-size:14px; white-space:nowrap; color:var(--accent);}
-  .close-btn{width:100%; margin-top:18px; padding:12px; border-radius:12px; border:none; background:var(--ink); color:#fff; font-size:14px; font-weight:600; cursor:pointer;}
+  .menu-item .desc2{font-size:12px; color:var(--muted); margin-top:2px;}
+  .menu-item .price2{font-weight:700; font-size:14px; white-space:nowrap; color:var(--gold);}
+  .close-btn{width:100%; margin-top:20px; padding:13px; border-radius:12px; border:1px solid var(--line); background:none; color:var(--ink); font-size:14px; font-weight:600; cursor:pointer;}
 
-  .status{
-    position:fixed; bottom:14px; left:50%; transform:translateX(-50%);
-    background:#1c1b19; color:#fff; font-size:11px; padding:6px 14px; border-radius:999px; opacity:.75;
-  }
+  .status{position:fixed; bottom:14px; left:50%; transform:translateX(-50%); background:var(--card); border:1px solid var(--line); color:var(--muted); font-size:11px; padding:6px 14px; border-radius:999px;}
   footer{text-align:center; padding:24px; color:var(--muted); font-size:12px;}
-  footer a{color:var(--accent); text-decoration:none;}
+  footer a{color:var(--gold); text-decoration:none;}
 </style>
 </head>
 <body>
 
 <header>
-  <div class="brand">
-    <div class="logo">bM</div>
-    <div>
-      <h1>biMekan</h1>
-      <small>Şehrindeki mekanları ve menüleri keşfet</small>
+  <div class="topbar">
+    <div class="brand">
+      <div class="logo">bM</div>
+      <div class="brand-text"><h1>biMekan</h1><small>yerel keşif rehberi</small></div>
     </div>
   </div>
+  <div class="tagline">Bugün <b>nereye</b> gidilir?</div>
   <div class="search">
     <span>🔎</span>
     <input placeholder="Mekan, kategori veya lezzet ara..." id="searchInput" />
   </div>
-  <div class="tabs" id="cityTabs"></div>
+  <div class="row-scroll" id="cityTabs"></div>
+  <div class="row-scroll" id="catChips"></div>
 </header>
 
 <main>
-  <div class="section-title" id="listTitle">Mekanlar yükleniyor...</div>
+  <div class="section-title">✨ Öne Çıkanlar</div>
+  <div class="featured-row" id="featuredRow"></div>
+
+  <div class="section-title"><span id="listTitle">Tüm Mekanlar</span> <span class="n" id="listCount"></span></div>
   <div class="grid" id="grid"></div>
 </main>
 
@@ -102,10 +142,14 @@
 <div class="overlay" id="overlay">
   <div class="sheet">
     <div class="sheet-cover" id="sheetCover"></div>
-    <h2 id="sheetName"></h2>
-    <div class="loc" id="sheetLoc"></div>
-    <div id="sheetMenu"></div>
-    <button class="close-btn" onclick="closeSheet()">Kapat</button>
+    <div class="sheet-body">
+      <h2 id="sheetName"></h2>
+      <div class="sheet-tags" id="sheetTags"></div>
+      <div class="desc" id="sheetDesc"></div>
+      <div class="menu-title">Menü</div>
+      <div id="sheetMenu"></div>
+      <button class="close-btn" onclick="closeSheet()">Kapat</button>
+    </div>
   </div>
 </div>
 
@@ -117,31 +161,31 @@ const SUPABASE_URL = 'https://iwkoxixoyjaxqsbjsjak.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_biY8I92YYNjwhG7gsff_yw_Sj8etOmt';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-const CATEGORY_STYLE = {
-  'Yemek':    {emoji:'🍢', color:'#e2622a'},
-  'Kafe':     {emoji:'☕', color:'#6b4f3a'},
-  'Restoran': {emoji:'🥐', color:'#3a5a8c'},
-};
-function styleFor(category){ return CATEGORY_STYLE[category] || {emoji:'📍', color:'#555'}; }
+const CATEGORIES = ['Tümü','Yemek','Kafe','Restoran','Bar','Tatlıcı','Kahvaltı'];
+const CATEGORY_ICON = {'Yemek':'🍢','Kafe':'☕','Restoran':'🍽️','Bar':'🍸','Tatlıcı':'🍮','Kahvaltı':'🥐'};
 
-let cities = [];
-let countries = [];
-let businesses = [];
+let countries = [], cities = [], businesses = [];
 const menuCache = {};
 let activeCity = 'all';
+let activeCat = 'Tümü';
 
 function cityName(id){ return cities.find(c=>c.id===id)?.name ?? ''; }
 function countryOfCity(cityId){
   const c = cities.find(c=>c.id===cityId);
   return countries.find(co=>co.id===c?.country_id)?.name ?? '';
 }
+function currencyFor(cityId){
+  return countryOfCity(cityId) === 'Türkiye' ? '₺' : '€';
+}
+function priceTag(level){ return level ? '₺'.repeat(level) : ''; }
+function coverStyle(b){ return b.image_url ? `background-image:url('${b.image_url}')` : `background:linear-gradient(135deg,#333,#555)`; }
 
 async function loadData(){
   const badge = document.getElementById('statusBadge');
   const [{data:c, error:e1}, {data:ci, error:e2}, {data:b, error:e3}] = await Promise.all([
     sb.from('countries').select('*').order('name'),
     sb.from('cities').select('*').order('name'),
-    sb.from('businesses').select('*').order('name'),
+    sb.from('businesses').select('*').order('rating', {ascending:false}),
   ]);
   if(e1||e2||e3){
     badge.textContent = '🔴 Supabase\'e bağlanılamadı';
@@ -149,61 +193,86 @@ async function loadData(){
     return;
   }
   countries = c; cities = ci; businesses = b;
-  badge.textContent = '🟢 canlı — Supabase';
+  badge.textContent = `🟢 canlı — ${businesses.length} mekan, ${cities.length} şehir`;
   renderTabs();
+  renderChips();
+  renderFeatured();
   renderGrid();
 }
 
 function renderTabs(){
   const wrap = document.getElementById('cityTabs');
-  const all = [{id:'all', name:'Tümü'}, ...cities];
-  wrap.innerHTML = all.map(c => `<div class="tab ${activeCity==c.id?'active':''}" data-id="${c.id}">${c.name}</div>`).join('');
-  wrap.querySelectorAll('.tab').forEach(t => t.onclick = () => { activeCity = t.dataset.id === 'all' ? 'all' : Number(t.dataset.id); renderTabs(); renderGrid(); });
+  const all = [{id:'all', name:'Tüm Şehirler'}, ...cities];
+  wrap.innerHTML = all.map(c => `<div class="city-tab ${activeCity==c.id?'active':''}" data-id="${c.id}">${c.name}</div>`).join('');
+  wrap.querySelectorAll('.city-tab').forEach(t => t.onclick = () => { activeCity = t.dataset.id === 'all' ? 'all' : Number(t.dataset.id); renderTabs(); renderGrid(); });
+}
+function renderChips(){
+  const wrap = document.getElementById('catChips');
+  wrap.innerHTML = CATEGORIES.map(cat => `<div class="cat-chip ${activeCat===cat?'active':''}" data-cat="${cat}">${CATEGORY_ICON[cat]||'✨'} ${cat}</div>`).join('');
+  wrap.querySelectorAll('.cat-chip').forEach(t => t.onclick = () => { activeCat = t.dataset.cat; renderChips(); renderGrid(); });
+}
+
+function renderFeatured(){
+  const row = document.getElementById('featuredRow');
+  const featured = businesses.filter(b=>b.featured);
+  if(!featured.length){ row.innerHTML = `<div class="empty">Henüz öne çıkan mekan yok.</div>`; return; }
+  row.innerHTML = featured.map(b => `
+    <div class="feat-card" style="${coverStyle(b)}" data-id="${b.id}">
+      <div class="feat-badge">⭐ ${b.rating ?? '–'}</div>
+      <div class="feat-info">
+        <h3>${b.name}</h3>
+        <div class="sub">${cityName(b.city_id)} · ${b.category||''} · ${priceTag(b.price_level)}</div>
+      </div>
+    </div>
+  `).join('');
+  row.querySelectorAll('.feat-card').forEach(el => el.onclick = () => openSheet(Number(el.dataset.id)));
 }
 
 function renderGrid(){
   const q = document.getElementById('searchInput').value.trim().toLowerCase();
-  const title = document.getElementById('listTitle');
-  title.textContent = activeCity === 'all' ? 'Tüm Mekanlar' : cityName(activeCity) + ' Mekanları';
-
   let list = businesses.filter(b => activeCity === 'all' || b.city_id === activeCity);
+  if(activeCat !== 'Tümü') list = list.filter(b => b.category === activeCat);
   if(q){
     list = list.filter(b =>
       b.name.toLowerCase().includes(q) || (b.category||'').toLowerCase().includes(q) || (b.description||'').toLowerCase().includes(q)
     );
   }
+  document.getElementById('listTitle').textContent = activeCity === 'all' ? 'Tüm Mekanlar' : cityName(activeCity) + ' Mekanları';
+  document.getElementById('listCount').textContent = `${list.length} sonuç`;
 
   const grid = document.getElementById('grid');
   if(list.length===0){
     grid.innerHTML = `<div class="empty">Aramanla eşleşen mekan bulunamadı.</div>`;
     return;
   }
-  grid.innerHTML = list.map(b => {
-    const s = styleFor(b.category);
-    const coverStyle = b.image_url ? `background-image:url('${b.image_url}')` : `background:${s.color}`;
-    return `
+  grid.innerHTML = list.map(b => `
     <div class="card" data-id="${b.id}">
-      <div class="cover" style="${coverStyle}">${b.image_url ? '' : s.emoji}</div>
+      <div class="cover" style="${coverStyle(b)}">${b.rating ? `<div class="rate">⭐ ${b.rating}</div>` : ''}</div>
       <div class="body">
-        <span class="cat">${b.category||''}</span>
+        <div class="cat-row">
+          <span class="cat">${CATEGORY_ICON[b.category]||''} ${b.category||''}</span>
+          <span class="price">${priceTag(b.price_level)}</span>
+        </div>
         <h3>${b.name}</h3>
         <p>${b.description||''}</p>
         <div class="meta">📍 ${cityName(b.city_id)}, ${countryOfCity(b.city_id)}</div>
       </div>
     </div>
-  `;}).join('');
+  `).join('');
   grid.querySelectorAll('.card').forEach(el => el.onclick = () => openSheet(Number(el.dataset.id)));
 }
 
 async function openSheet(id){
   const b = businesses.find(x=>x.id===id);
-  const s = styleFor(b.category);
-  const coverStyle = b.image_url ? `background-image:url('${b.image_url}')` : `background:${s.color}`;
-  const cover = document.getElementById('sheetCover');
-  cover.style.cssText = coverStyle;
-  cover.textContent = b.image_url ? '' : s.emoji;
+  document.getElementById('sheetCover').style.cssText = coverStyle(b);
   document.getElementById('sheetName').textContent = b.name;
-  document.getElementById('sheetLoc').textContent = `📍 ${cityName(b.city_id)}, ${countryOfCity(b.city_id)} · ${b.category||''}`;
+  document.getElementById('sheetTags').innerHTML = `
+    ${b.rating ? `<span class="rate">⭐ ${b.rating}</span>` : ''}
+    <span>·</span><span>${CATEGORY_ICON[b.category]||''} ${b.category||''}</span>
+    <span>·</span><span class="price">${priceTag(b.price_level)}</span>
+    <span>·</span><span>📍 ${cityName(b.city_id)}, ${countryOfCity(b.city_id)}</span>
+  `;
+  document.getElementById('sheetDesc').textContent = b.description || '';
   document.getElementById('sheetMenu').innerHTML = `<div class="empty">Menü yükleniyor...</div>`;
   document.getElementById('overlay').classList.add('open');
 
@@ -212,11 +281,12 @@ async function openSheet(id){
     menuCache[id] = data || [];
   }
   const items = menuCache[id];
+  const cur = currencyFor(b.city_id);
   document.getElementById('sheetMenu').innerHTML = items.length
     ? items.map(m => `
         <div class="menu-item">
-          <div><div class="name">${m.title}</div><div class="desc">${m.description||''}</div></div>
-          <div class="price">${Number(m.price).toFixed(0)} ₺</div>
+          <div><div class="name">${m.title}</div><div class="desc2">${m.description||''}</div></div>
+          <div class="price2">${Number(m.price).toFixed(cur==='₺'?0:2)} ${cur}</div>
         </div>
       `).join('')
     : `<div class="empty">Bu mekan için henüz menü eklenmemiş.</div>`;
