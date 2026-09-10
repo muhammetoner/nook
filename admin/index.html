@@ -188,6 +188,14 @@ async function onAuthed(){
   if(s){ await onAuthed(); }
 })();
 
+// ---------- ülke eklenince otomatik gelecek şehirler ----------
+const COUNTRY_CITIES = {
+  'Türkiye': ['Adana','Adıyaman','Afyonkarahisar','Ağrı','Amasya','Ankara','Antalya','Artvin','Aydın','Balıkesir','Bilecik','Bingöl','Bitlis','Bolu','Burdur','Bursa','Çanakkale','Çankırı','Çorum','Denizli','Diyarbakır','Edirne','Elazığ','Erzincan','Erzurum','Eskişehir','Gaziantep','Giresun','Gümüşhane','Hakkâri','Hatay','Isparta','Mersin','İstanbul','İzmir','Kars','Kastamonu','Kayseri','Kırklareli','Kırşehir','Kocaeli','Konya','Kütahya','Malatya','Manisa','Kahramanmaraş','Mardin','Muğla','Muş','Nevşehir','Niğde','Ordu','Rize','Sakarya','Samsun','Siirt','Sinop','Sivas','Tekirdağ','Tokat','Trabzon','Tunceli','Şanlıurfa','Uşak','Van','Yozgat','Zonguldak','Aksaray','Bayburt','Karaman','Kırıkkale','Batman','Şırnak','Bartın','Ardahan','Iğdır','Yalova','Karabük','Kilis','Osmaniye','Düzce'],
+  'Almanya': ['Berlin','Hamburg','Münih','Köln','Frankfurt','Stuttgart','Düsseldorf','Dortmund','Essen','Leipzig','Bremen','Dresden','Hannover','Nürnberg','Duisburg','Bochum','Wuppertal','Bielefeld','Bonn','Münster'],
+  'Fransa': ['Paris','Marsilya','Lyon','Toulouse','Nice','Nantes','Strazburg','Montpellier','Bordeaux','Lille','Rennes','Reims','Le Havre','Saint-Étienne','Toulon','Grenoble','Dijon','Angers','Nîmes','Villeurbanne'],
+  'İtalya': ['Roma','Milano','Napoli','Torino','Palermo','Cenova','Bologna','Floransa','Bari','Catania','Venedik','Verona','Messina','Padova','Trieste','Taranto','Brescia','Parma','Prato','Modena'],
+};
+
 // ---------- veri katmanı ----------
 const ENTITIES = {
   countries: {
@@ -253,6 +261,16 @@ document.querySelectorAll('.tab').forEach(t => t.onclick = () => {
   loadTab(t.dataset.tab);
 });
 
+async function autoFillCities(country){
+  const cityNames = COUNTRY_CITIES[country.name];
+  if(!cityNames || !cityNames.length) return;
+  const rows = cityNames.map(name => ({ name, country_id: country.id }));
+  const { error } = await sb.from('cities').upsert(rows, { onConflict: 'name,country_id', ignoreDuplicates: true });
+  if(error){ alert('Otomatik şehir ekleme hatası: ' + error.message); return; }
+  alert(`${cityNames.length} şehir "${country.name}" altına otomatik eklendi.`);
+  if(activeTab === 'cities') loadTab('cities');
+}
+
 async function loadTab(tab){
   activeTab = tab;
   const conf = ENTITIES[tab];
@@ -273,6 +291,7 @@ async function loadTab(tab){
           return `<td>${row[c.key] ?? ''}</td>`;
         }).join('')}
         <td class="row-actions">
+          ${tab==='countries' && COUNTRY_CITIES[row.name] ? `<button data-act="fillcities">Şehirleri Tamamla</button>` : ''}
           <button data-act="edit">Düzenle</button>
           <button data-act="del" class="danger">Sil</button>
         </td>
@@ -289,6 +308,10 @@ async function loadTab(tab){
     const { error } = await sb.from(conf.table).delete().eq('id', id);
     if(error){ alert('Silinemedi: ' + error.message); return; }
     loadTab(tab);
+  });
+  wrap.querySelectorAll('button[data-act="fillcities"]').forEach(b => b.onclick = async (e) => {
+    const id = Number(e.target.closest('tr').dataset.id);
+    await autoFillCities(data.find(r=>r.id===id));
   });
 }
 
@@ -373,10 +396,16 @@ function openModal(row){
       payload[f.name] = v;
     });
     const conf2 = ENTITIES[activeTab];
-    const { error } = row
-      ? await sb.from(conf2.table).update(payload).eq('id', row.id)
-      : await sb.from(conf2.table).insert(payload);
-    if(error){ alert('Kaydedilemedi: ' + error.message); return; }
+    if(row){
+      const { error } = await sb.from(conf2.table).update(payload).eq('id', row.id);
+      if(error){ alert('Kaydedilemedi: ' + error.message); return; }
+    } else {
+      const { data: inserted, error } = await sb.from(conf2.table).insert(payload).select().maybeSingle();
+      if(error){ alert('Kaydedilemedi: ' + error.message); return; }
+      if(activeTab === 'countries'){
+        await autoFillCities(inserted);
+      }
+    }
     closeModal();
     loadTab(activeTab);
   };
