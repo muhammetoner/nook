@@ -147,14 +147,12 @@
   .menu-item .desc2{font-size:12px; color:var(--muted); margin-top:2px;}
   .menu-item .price2{font-weight:700; font-size:14px; white-space:nowrap; color:var(--gold);}
   .close-btn{width:100%; margin-top:20px; padding:13px; border-radius:12px; border:1px solid var(--line); background:none; color:var(--ink); font-size:14px; font-weight:600; cursor:pointer;}
-  .map-row{display:flex; align-items:center; gap:12px; margin-bottom:16px;}
-  .map-embed{flex:none; width:92px; height:92px; border-radius:14px; overflow:hidden; border:1px solid var(--line); position:relative;}
-  .map-embed iframe{position:absolute; top:-42px; left:0; width:100%; height:176px; border:0; pointer-events:none;}
   .map-directions-btn{
-    flex:1; display:flex; align-items:center; justify-content:center; gap:6px;
+    width:100%; display:flex; align-items:center; justify-content:center; gap:7px;
     background:var(--bg-soft); border:1px solid var(--line); color:var(--ink);
-    font-size:13px; font-weight:600; padding:10px 14px; border-radius:12px; cursor:pointer;
+    font-size:14px; font-weight:600; padding:12px 14px; border-radius:12px; cursor:pointer; margin-bottom:16px;
   }
+  .map-directions-btn:hover{border-color:var(--gold); color:var(--gold);}
 
   label{display:block; font-size:12px; font-weight:600; color:var(--muted); margin:14px 0 6px;}
   input[type=text], input[type=email], input[type=password], textarea, select{
@@ -770,14 +768,7 @@ function openAttractionSheet(id){
 
 function mapRowHtml(lat, lng){
   if(!lat || !lng) return '';
-  return `
-    <div class="map-row">
-      <div class="map-embed" onclick="window.open('https://maps.google.com/maps?q=${lat},${lng}&z=16','_blank')" title="Haritada aç">
-        <iframe src="https://maps.google.com/maps?q=${lat},${lng}&z=15&output=embed" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
-      </div>
-      <button class="map-directions-btn" onclick="getDirections(${lat}, ${lng})">${icon('navigation',14)} Yol tarifi al</button>
-    </div>
-  `;
+  return `<button class="map-directions-btn" onclick="getDirections(${lat}, ${lng})">${icon('navigation',14)} Yol tarifi al</button>`;
 }
 
 function getDirections(lat, lng){
