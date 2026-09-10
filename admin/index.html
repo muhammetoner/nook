@@ -97,6 +97,7 @@
       <div class="tab active" data-tab="countries">Ülkeler</div>
       <div class="tab" data-tab="cities">Şehirler</div>
       <div class="tab" data-tab="businesses">Mekanlar</div>
+      <div class="tab" data-tab="attractions">Gezilecek Yerler</div>
       <div class="tab" data-tab="menus">Menüler</div>
     </div>
     <div class="panel-head">
@@ -227,6 +228,20 @@ const ENTITIES = {
       {name:'featured', label:'Öne çıkan mekan', type:'checkbox'},
       {name:'moods', label:'Ruh hali etiketleri', type:'multiselect', options:['Romantik','Sessiz Çalışma','Arkadaşlarla','Aile ile','Manzaralı','Gece Sohbeti','Hızlı Atıştırma']},
       {name:'image_url', label:'Görsel', type:'image', bucket:'business-images'},
+    ],
+  },
+  attractions: {
+    label:'Gezilecek Yerler', table:'attractions',
+    columns:[{key:'name', label:'Ad'}, {key:'city_id', label:'Şehir', ref:'cities'}, {key:'category', label:'Kategori'}, {key:'era', label:'Dönem'}, {key:'cover_image_url', label:'Görsel', img:true}],
+    fields:[
+      {name:'name', label:'Ad', type:'text', required:true},
+      {name:'city_id', label:'Şehir', type:'select', ref:'cities', required:true},
+      {name:'category', label:'Kategori', type:'select', options:['Tarihi Mekan','Müze','Anıt','Doğal Güzellik','Dini Yapı','Kale-Saray']},
+      {name:'era', label:'Dönem (ör. 1889, Bizans Dönemi)', type:'text'},
+      {name:'short_description', label:'Kısa açıklama', type:'textarea'},
+      {name:'story', label:'Hikaye / Tarihçe', type:'textarea'},
+      {name:'cover_image_url', label:'Kapak görseli', type:'image', bucket:'business-images'},
+      {name:'gallery', label:'Ek galeri görselleri', type:'imagelist', bucket:'business-images'},
     ],
   },
   menus: {
@@ -360,12 +375,22 @@ function openModal(row){
         ${val ? `<img class="thumb" style="margin-top:8px" src="${val}">` : ''}
         <div style="font-size:11px;color:var(--muted);margin-top:4px;" data-upload-status="${f.name}"></div>`;
     }
+    if(f.type === 'imagelist'){
+      const existing = (row && row[f.name]) || [];
+      return `<label>${f.label}</label>
+        <input type="hidden" name="${f.name}" value='${JSON.stringify(existing)}'>
+        <div data-imagelist-thumbs="${f.name}" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px;">
+          ${existing.map(u=>`<img class="thumb" src="${u}">`).join('')}
+        </div>
+        <input type="file" accept="image/*" multiple data-imagelist-for="${f.name}" data-bucket="${f.bucket}">
+        <div style="font-size:11px;color:var(--muted);margin-top:4px;" data-upload-status="${f.name}"></div>`;
+    }
     const extra = f.step ? `step="${f.step}"` : '';
     const minmax = (f.min!==undefined?`min="${f.min}"`:'') + (f.max!==undefined?` max="${f.max}"`:'');
     return `<label>${f.label}</label><input type="${f.type}" name="${f.name}" value="${val}" ${extra} ${minmax} ${f.required?'required':''}>`;
   }).join('');
 
-  form.querySelectorAll('input[type=file]').forEach(fileInput => {
+  form.querySelectorAll('input[data-image-for]').forEach(fileInput => {
     fileInput.onchange = async () => {
       const file = fileInput.files[0];
       if(!file) return;
@@ -382,6 +407,30 @@ function openModal(row){
     };
   });
 
+  form.querySelectorAll('input[data-imagelist-for]').forEach(fileInput => {
+    fileInput.onchange = async () => {
+      const files = [...fileInput.files];
+      if(!files.length) return;
+      const bucket = fileInput.dataset.bucket;
+      const fieldName = fileInput.dataset.imagelistFor;
+      const statusEl = form.querySelector(`[data-upload-status="${fieldName}"]`);
+      const hiddenInput = form.querySelector(`input[name="${fieldName}"]`);
+      const thumbsWrap = form.querySelector(`[data-imagelist-thumbs="${fieldName}"]`);
+      const current = JSON.parse(hiddenInput.value || '[]');
+      statusEl.textContent = `${files.length} görsel yükleniyor...`;
+      for(const file of files){
+        const path = `${Date.now()}_${file.name}`;
+        const { error } = await sb.storage.from(bucket).upload(path, file);
+        if(error){ statusEl.textContent = 'Hata: ' + error.message; continue; }
+        const { data: pub } = sb.storage.from(bucket).getPublicUrl(path);
+        current.push(pub.publicUrl);
+      }
+      hiddenInput.value = JSON.stringify(current);
+      thumbsWrap.innerHTML = current.map(u=>`<img class="thumb" src="${u}">`).join('');
+      statusEl.textContent = 'Yüklendi ✓';
+    };
+  });
+
   document.getElementById('modalOverlay').classList.add('open');
 
   form.onsubmit = async (e) => {
@@ -391,6 +440,7 @@ function openModal(row){
     conf.fields.forEach(f => {
       if(f.type === 'checkbox'){ payload[f.name] = fd.get(f.name) === 'on'; return; }
       if(f.type === 'multiselect'){ payload[f.name] = fd.getAll(f.name); return; }
+      if(f.type === 'imagelist'){ payload[f.name] = JSON.parse(fd.get(f.name) || '[]'); return; }
       let v = fd.get(f.name);
       if((f.type === 'select' && f.ref) || f.name.endsWith('_id')) v = v ? Number(v) : null;
       if(f.type === 'number') v = v === '' ? null : Number(v);

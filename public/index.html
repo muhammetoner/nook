@@ -193,6 +193,7 @@
 
   <div class="view-switch" id="viewSwitch">
     <div class="view-tab active" data-view="discover">Keşfet</div>
+    <div class="view-tab" data-view="attractions">Gezilecek Yerler</div>
     <div class="view-tab" data-view="lists">Listeler</div>
   </div>
 
@@ -203,6 +204,7 @@
       <div class="row-scroll" id="catChips"></div>
       <div class="row-scroll" id="moodChips"></div>
     </div>
+    <div class="row-scroll" id="attrCatChips" style="display:none;"></div>
   </div>
 </header>
 
@@ -235,7 +237,7 @@
       <h2 id="sheetName"></h2>
       <div class="sheet-tags" id="sheetTags"></div>
       <div class="desc" id="sheetDesc"></div>
-      <div class="menu-title">Menü</div>
+      <div class="menu-title" id="sheetSectionTitle">Menü</div>
       <div id="sheetMenu"></div>
       <button class="close-btn" onclick="closeOverlay('overlay')">Kapat</button>
     </div>
@@ -316,13 +318,16 @@ const CATEGORIES = ['Tümü','Yemek','Kafe','Restoran','Bar','Tatlıcı','Kahval
 const CATEGORY_ICON = {'Yemek':'🍢','Kafe':'☕','Restoran':'🍽️','Bar':'🍸','Tatlıcı':'🍮','Kahvaltı':'🥐'};
 const MOODS = ['Romantik','Sessiz Çalışma','Arkadaşlarla','Aile ile','Manzaralı','Gece Sohbeti','Hızlı Atıştırma'];
 const MOOD_ICON = {'Romantik':'💕','Sessiz Çalışma':'🤫','Arkadaşlarla':'🎉','Aile ile':'👨‍👩‍👧','Manzaralı':'🌇','Gece Sohbeti':'🌙','Hızlı Atıştırma':'⚡'};
+const ATTR_CATEGORIES = ['Tümü','Tarihi Mekan','Müze','Anıt','Doğal Güzellik','Dini Yapı','Kale-Saray'];
+const ATTR_CATEGORY_ICON = {'Tarihi Mekan':'🏛️','Müze':'🖼️','Anıt':'🗽','Doğal Güzellik':'🏞️','Dini Yapı':'🕌','Kale-Saray':'🏰'};
 
-let countries = [], cities = [], businesses = [];
+let countries = [], cities = [], businesses = [], attractions = [];
 const menuCache = {};
 let activeCity = 'all';
 let activeCat = 'Tümü';
 let activeMood = 'Tümü';
-let currentView = 'discover'; // discover | lists | collection-detail
+let activeAttrCat = 'Tümü';
+let currentView = 'discover'; // discover | attractions | lists | collection-detail
 let session = null;
 let myProfile = null;
 let myCollections = [];
@@ -336,28 +341,31 @@ function countryOfCity(cityId){
 function currencyFor(cityId){ return countryOfCity(cityId) === 'Türkiye' ? '₺' : '€'; }
 function priceTag(level){ return level ? '₺'.repeat(level) : ''; }
 function coverStyle(b){ return b.image_url ? `background-image:url('${b.image_url}')` : `background:linear-gradient(135deg,#333,#555)`; }
+function attrCoverStyle(a){ return a.cover_image_url ? `background-image:url('${a.cover_image_url}')` : `background:linear-gradient(135deg,#3a3226,#55442c)`; }
 function closeOverlay(id){ document.getElementById(id).classList.remove('open'); }
 function openOverlay(id){ document.getElementById(id).classList.add('open'); }
 
 // ---------- veri yükleme ----------
 async function loadData(){
   const badge = document.getElementById('statusBadge');
-  const [{data:c, error:e1}, {data:ci, error:e2}, {data:b, error:e3}] = await Promise.all([
+  const [{data:c, error:e1}, {data:ci, error:e2}, {data:b, error:e3}, {data:a, error:e4}] = await Promise.all([
     sb.from('countries').select('*').order('name'),
     sb.from('cities').select('*').order('name'),
     sb.from('businesses').select('*').order('rating', {ascending:false}),
+    sb.from('attractions').select('*').order('name'),
   ]);
-  if(e1||e2||e3){
+  if(e1||e2||e3||e4){
     badge.textContent = '🔴 Supabase\'e bağlanılamadı';
     document.getElementById('grid').innerHTML = `<div class="empty">Veriler yüklenemedi.</div>`;
     return;
   }
-  countries = c; cities = ci; businesses = b;
+  countries = c; cities = ci; businesses = b; attractions = a;
   const activeCityCount = cities.filter(c => businesses.some(b => b.city_id === c.id)).length;
-  badge.textContent = `🟢 canlı — ${businesses.length} mekan, ${activeCityCount} şehir`;
+  badge.textContent = `🟢 canlı — ${businesses.length} mekan, ${attractions.length} gezilecek yer, ${activeCityCount} şehir`;
   renderTabs();
   renderChips();
   renderMoodChips();
+  renderAttrChips();
   renderDiscoverView();
 }
 
@@ -449,8 +457,10 @@ document.getElementById('authSubmit').onclick = async () => {
 document.querySelectorAll('.view-tab').forEach(t => t.onclick = () => switchView(t.dataset.view));
 function switchView(view){
   currentView = view;
+  activeCity = 'all';
   document.querySelectorAll('.view-tab').forEach(t => t.classList.toggle('active', t.dataset.view===view));
   if(view === 'discover') renderDiscoverView();
+  if(view === 'attractions') renderAttractionsView();
   if(view === 'lists') renderListsView();
 }
 
@@ -458,16 +468,40 @@ function renderDiscoverView(){
   document.getElementById('discoverFilters').style.display = '';
   document.getElementById('featuredSection').style.display = '';
   document.getElementById('backLinkWrap').style.display = 'none';
+  document.getElementById('filterToggleBtn').style.display = '';
+  document.getElementById('attrCatChips').style.display = 'none';
+  renderTabs();
   renderGrid();
+}
+
+function renderAttractionsView(){
+  document.getElementById('discoverFilters').style.display = '';
+  document.getElementById('featuredSection').style.display = 'none';
+  document.getElementById('backLinkWrap').style.display = 'none';
+  document.getElementById('filterToggleBtn').style.display = 'none';
+  document.getElementById('extraFilters').classList.remove('open');
+  document.getElementById('attrCatChips').style.display = '';
+  renderTabs();
+  renderAttractionsGrid();
 }
 
 // ---------- filtre çipleri ----------
 function renderTabs(){
   const wrap = document.getElementById('cityTabs');
-  const citiesWithBusinesses = cities.filter(c => businesses.some(b => b.city_id === c.id));
-  const all = [{id:'all', name:'Tüm Şehirler'}, ...citiesWithBusinesses];
+  const sourceList = currentView === 'attractions' ? attractions : businesses;
+  const citiesWithContent = cities.filter(c => sourceList.some(x => x.city_id === c.id));
+  const all = [{id:'all', name:'Tüm Şehirler'}, ...citiesWithContent];
   wrap.innerHTML = all.map(c => `<div class="city-tab ${activeCity==c.id?'active':''}" data-id="${c.id}">${c.name}</div>`).join('');
-  wrap.querySelectorAll('.city-tab').forEach(t => t.onclick = () => { activeCity = t.dataset.id === 'all' ? 'all' : Number(t.dataset.id); renderTabs(); renderGrid(); });
+  wrap.querySelectorAll('.city-tab').forEach(t => t.onclick = () => {
+    activeCity = t.dataset.id === 'all' ? 'all' : Number(t.dataset.id);
+    renderTabs();
+    currentView === 'attractions' ? renderAttractionsGrid() : renderGrid();
+  });
+}
+function renderAttrChips(){
+  const wrap = document.getElementById('attrCatChips');
+  wrap.innerHTML = ATTR_CATEGORIES.map(cat => `<div class="cat-chip ${activeAttrCat===cat?'active':''}" data-cat="${cat}">${ATTR_CATEGORY_ICON[cat]||'✨'} ${cat}</div>`).join('');
+  wrap.querySelectorAll('.cat-chip').forEach(t => t.onclick = () => { activeAttrCat = t.dataset.cat; renderAttrChips(); renderAttractionsGrid(); });
 }
 function renderChips(){
   const wrap = document.getElementById('catChips');
@@ -563,11 +597,13 @@ function renderGrid(){
 }
 document.getElementById('searchInput').addEventListener('input', () => {
   if(currentView==='discover') renderGrid();
+  if(currentView==='attractions') renderAttractionsGrid();
   if(currentView==='lists') renderListsGrid();
 });
 
 async function openSheet(id){
   const b = businesses.find(x=>x.id===id);
+  document.getElementById('sheetSectionTitle').textContent = 'Menü';
   document.getElementById('sheetCover').style.cssText = coverStyle(b);
   document.getElementById('sheetName').textContent = b.name;
   document.getElementById('sheetTags').innerHTML = `
@@ -596,6 +632,66 @@ async function openSheet(id){
     : `<div class="empty">Bu mekan için henüz menü eklenmemiş.</div>`;
 }
 document.getElementById('overlay').addEventListener('click', e => { if(e.target.id==='overlay') closeOverlay('overlay'); });
+
+// ---------- Gezilecek Yerler ----------
+function attractionCardHtml(a){
+  return `
+    <div class="card" data-attr-id="${a.id}">
+      <div class="cover" style="${attrCoverStyle(a)}"></div>
+      <div class="body">
+        <div class="cat-row">
+          <span class="cat">${ATTR_CATEGORY_ICON[a.category]||''} ${a.category||''}</span>
+          <span class="price">${a.era||''}</span>
+        </div>
+        <h3>${a.name}</h3>
+        <p>${a.short_description||''}</p>
+        <div class="meta">📍 ${cityName(a.city_id)}, ${countryOfCity(a.city_id)}</div>
+      </div>
+    </div>`;
+}
+
+function renderAttractionsGrid(){
+  const q = document.getElementById('searchInput').value.trim().toLowerCase();
+  let list = attractions.filter(a => activeCity === 'all' || a.city_id === activeCity);
+  if(activeAttrCat !== 'Tümü') list = list.filter(a => a.category === activeAttrCat);
+  if(q){
+    list = list.filter(a =>
+      a.name.toLowerCase().includes(q) || (a.category||'').toLowerCase().includes(q) ||
+      (a.short_description||'').toLowerCase().includes(q) || (a.story||'').toLowerCase().includes(q)
+    );
+  }
+  document.getElementById('listTitle').textContent = activeCity === 'all' ? 'Tüm Gezilecek Yerler' : cityName(activeCity) + ' Gezilecek Yerleri';
+  document.getElementById('listCount').textContent = `${list.length} sonuç`;
+
+  const grid = document.getElementById('grid');
+  if(list.length===0){
+    grid.innerHTML = `<div class="empty">Aramanla eşleşen gezilecek yer bulunamadı.</div>`;
+    return;
+  }
+  grid.innerHTML = list.map(attractionCardHtml).join('');
+  grid.querySelectorAll('[data-attr-id]').forEach(el => el.onclick = () => openAttractionSheet(Number(el.dataset.attrId)));
+}
+
+function openAttractionSheet(id){
+  const a = attractions.find(x=>x.id===id);
+  document.getElementById('sheetSectionTitle').textContent = 'Hikaye';
+  document.getElementById('sheetCover').style.cssText = attrCoverStyle(a);
+  document.getElementById('sheetName').textContent = a.name;
+  document.getElementById('sheetTags').innerHTML = `
+    <span>${ATTR_CATEGORY_ICON[a.category]||''} ${a.category||''}</span>
+    ${a.era ? `<span>·</span><span class="price">${a.era}</span>` : ''}
+    <span>·</span><span>📍 ${cityName(a.city_id)}, ${countryOfCity(a.city_id)}</span>
+  `;
+  document.getElementById('sheetDesc').textContent = a.short_description || '';
+  const gallery = a.gallery && a.gallery.length
+    ? `<div class="featured-row" style="margin-top:2px;">${a.gallery.map(u=>`<div class="feat-card" style="width:200px;height:130px;background-image:url('${u}')"></div>`).join('')}</div>`
+    : '';
+  document.getElementById('sheetMenu').innerHTML = `
+    <p style="font-size:14px; line-height:1.7; color:var(--ink); margin:0 0 16px;">${a.story || 'Bu yer için henüz bir hikaye eklenmemiş.'}</p>
+    ${gallery}
+  `;
+  openOverlay('overlay');
+}
 
 // ---------- Listeler (herkese açık koleksiyonlar) ----------
 let publicCollections = [];
