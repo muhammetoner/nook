@@ -315,7 +315,8 @@ async function loadData(){
     return;
   }
   countries = c; cities = ci; businesses = b;
-  badge.textContent = `🟢 canlı — ${businesses.length} mekan, ${cities.length} şehir`;
+  const activeCityCount = cities.filter(c => businesses.some(b => b.city_id === c.id)).length;
+  badge.textContent = `🟢 canlı — ${businesses.length} mekan, ${activeCityCount} şehir`;
   renderTabs();
   renderChips();
   renderMoodChips();
@@ -391,7 +392,8 @@ function renderDiscoverView(){
 // ---------- filtre çipleri ----------
 function renderTabs(){
   const wrap = document.getElementById('cityTabs');
-  const all = [{id:'all', name:'Tüm Şehirler'}, ...cities];
+  const citiesWithBusinesses = cities.filter(c => businesses.some(b => b.city_id === c.id));
+  const all = [{id:'all', name:'Tüm Şehirler'}, ...citiesWithBusinesses];
   wrap.innerHTML = all.map(c => `<div class="city-tab ${activeCity==c.id?'active':''}" data-id="${c.id}">${c.name}</div>`).join('');
   wrap.querySelectorAll('.city-tab').forEach(t => t.onclick = () => { activeCity = t.dataset.id === 'all' ? 'all' : Number(t.dataset.id); renderTabs(); renderGrid(); });
 }
