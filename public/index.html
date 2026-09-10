@@ -61,6 +61,20 @@
   }
   .mood-chip.active{background:var(--teal); border-color:var(--teal); color:#0d211d; font-weight:700;}
 
+  .filter-toggle{
+    display:flex; align-items:center; gap:6px; margin-top:12px; padding:7px 14px; border-radius:999px;
+    background:var(--bg-soft); border:1px solid var(--line); color:var(--ink); font-size:12.5px; font-weight:600; cursor:pointer;
+  }
+  .filter-toggle .badge{background:var(--teal); color:#0d211d; font-size:10.5px; font-weight:800; padding:1px 6px; border-radius:999px;}
+  #extraFilters{display:none;}
+  #extraFilters.open{display:block;}
+
+  /* ---------- iskelet (yükleniyor) ---------- */
+  @keyframes skeleton-pulse{0%{background-position:100% 50%} 100%{background-position:0 50%}}
+  .skeleton{background:linear-gradient(90deg, var(--card) 25%, var(--line) 37%, var(--card) 63%); background-size:400% 100%; animation:skeleton-pulse 1.4s ease infinite;}
+  .skel-feat{flex:none; width:270px; height:190px; border-radius:18px;}
+  .skel-card{height:255px; border-radius:16px;}
+
   main{max-width:1040px; margin:0 auto; padding:6px 20px 40px;}
   .section-title{display:flex; align-items:center; justify-content:space-between; gap:8px; font-size:13px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.06em; margin:30px 2px 14px;}
   .section-title .n{color:var(--ink); text-transform:none; font-weight:400; letter-spacing:0; font-size:12px;}
@@ -184,15 +198,20 @@
 
   <div id="discoverFilters">
     <div class="row-scroll" id="cityTabs"></div>
-    <div class="row-scroll" id="catChips"></div>
-    <div class="row-scroll" id="moodChips"></div>
+    <div class="filter-toggle" id="filterToggleBtn">🎛️ Kategori ve ruh hali filtreleri <span class="badge" id="filterBadge" style="display:none;"></span> <span id="filterChevron">▾</span></div>
+    <div id="extraFilters">
+      <div class="row-scroll" id="catChips"></div>
+      <div class="row-scroll" id="moodChips"></div>
+    </div>
   </div>
 </header>
 
 <main>
   <div id="featuredSection">
     <div class="section-title">✨ Öne Çıkanlar</div>
-    <div class="featured-row" id="featuredRow"></div>
+    <div class="featured-row" id="featuredRow">
+      <div class="skeleton skel-feat"></div><div class="skeleton skel-feat"></div><div class="skeleton skel-feat"></div>
+    </div>
   </div>
 
   <div class="section-title">
@@ -200,7 +219,10 @@
     <span class="n" id="listCount"></span>
   </div>
   <div id="backLinkWrap" style="display:none; margin:-6px 0 14px;"><span class="back-link" id="backLink">‹ Listelere dön</span></div>
-  <div class="grid" id="grid"></div>
+  <div class="grid" id="grid">
+    <div class="skeleton skel-card"></div><div class="skeleton skel-card"></div><div class="skeleton skel-card"></div>
+    <div class="skeleton skel-card"></div><div class="skeleton skel-card"></div><div class="skeleton skel-card"></div>
+  </div>
 </main>
 
 <footer>Nook · <a href="../admin/">Yönetici girişi</a></footer>
@@ -267,6 +289,21 @@
   </div>
 </div>
 
+<!-- profil / görünen ad -->
+<div class="overlay center" id="profileOverlay">
+  <div class="sheet">
+    <div class="sheet-body">
+      <h2>Görünen adınız</h2>
+      <p style="color:var(--muted); font-size:13px; margin:2px 0 0;">E-posta yerine burada bu isim görünecek.</p>
+      <label>Görünen ad</label>
+      <input type="text" id="displayNameInput" placeholder="Örn. Muhammet">
+      <button class="btn-block" id="saveDisplayNameBtn">Kaydet</button>
+      <div id="profileMsg"></div>
+      <button class="close-btn" onclick="closeOverlay('profileOverlay')">Kapat</button>
+    </div>
+  </div>
+</div>
+
 <div class="status" id="statusBadge">🔌 bağlanılıyor...</div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
@@ -287,6 +324,7 @@ let activeCat = 'Tümü';
 let activeMood = 'Tümü';
 let currentView = 'discover'; // discover | lists | collection-detail
 let session = null;
+let myProfile = null;
 let myCollections = [];
 let pendingBusinessId = null; // koleksiyona eklenecek mekan
 
@@ -327,25 +365,59 @@ async function loadData(){
 async function refreshSession(){
   const { data:{ session: s } } = await sb.auth.getSession();
   session = s;
+  if(session) await loadMyProfile();
   renderAuthArea();
   if(session) await loadMyCollections();
 }
-sb.auth.onAuthStateChange((_event, s) => { session = s; renderAuthArea(); if(session) loadMyCollections(); });
+sb.auth.onAuthStateChange(async (_event, s) => {
+  session = s;
+  if(session) await loadMyProfile(); else myProfile = null;
+  renderAuthArea();
+  if(session) loadMyCollections();
+});
+
+async function loadMyProfile(){
+  const { data } = await sb.from('profiles').select('*').eq('id', session.user.id).maybeSingle();
+  myProfile = data;
+}
+
+function displayName(){
+  return myProfile?.display_name || session?.user.email.split('@')[0] || '';
+}
 
 function renderAuthArea(){
   const area = document.getElementById('authArea');
   if(session){
-    const label = session.user.email.split('@')[0];
     area.innerHTML = `
       <button class="pill-btn" id="myListsBtn">📚 Listelerim</button>
-      <button class="pill-btn" id="logoutBtn">${label} · Çıkış</button>`;
+      <button class="pill-btn" id="profileBtn">👤 ${displayName()}</button>
+      <button class="pill-btn" id="logoutBtn">Çıkış</button>`;
     document.getElementById('myListsBtn').onclick = openMyLists;
-    document.getElementById('logoutBtn').onclick = async () => { await sb.auth.signOut(); session=null; renderAuthArea(); };
+    document.getElementById('profileBtn').onclick = openProfileEditor;
+    document.getElementById('logoutBtn').onclick = async () => { await sb.auth.signOut(); session=null; myProfile=null; renderAuthArea(); };
   } else {
     area.innerHTML = `<button class="pill-btn gold" id="loginBtn">Giriş yap</button>`;
     document.getElementById('loginBtn').onclick = () => openOverlay('authOverlay');
   }
 }
+
+function openProfileEditor(){
+  document.getElementById('displayNameInput').value = myProfile?.display_name || '';
+  document.getElementById('profileMsg').innerHTML = '';
+  openOverlay('profileOverlay');
+}
+document.getElementById('saveDisplayNameBtn').onclick = async () => {
+  const name = document.getElementById('displayNameInput').value.trim();
+  const msg = document.getElementById('profileMsg');
+  if(!name){ msg.innerHTML = `<div class="msg error">Bir ad girin.</div>`; return; }
+  const { error } = await sb.from('profiles').update({ display_name: name }).eq('id', session.user.id);
+  if(error){ msg.innerHTML = `<div class="msg error">${error.message}</div>`; return; }
+  myProfile = { ...(myProfile||{}), display_name: name };
+  localStorage.setItem('nook_curator_name', name);
+  renderAuthArea();
+  msg.innerHTML = `<div class="msg ok">Kaydedildi ✓</div>`;
+  setTimeout(() => closeOverlay('profileOverlay'), 600);
+};
 
 let isSignUpMode = false;
 document.getElementById('authToggle').onclick = () => {
@@ -400,13 +472,26 @@ function renderTabs(){
 function renderChips(){
   const wrap = document.getElementById('catChips');
   wrap.innerHTML = CATEGORIES.map(cat => `<div class="cat-chip ${activeCat===cat?'active':''}" data-cat="${cat}">${CATEGORY_ICON[cat]||'✨'} ${cat}</div>`).join('');
-  wrap.querySelectorAll('.cat-chip').forEach(t => t.onclick = () => { activeCat = t.dataset.cat; renderChips(); renderGrid(); });
+  wrap.querySelectorAll('.cat-chip').forEach(t => t.onclick = () => { activeCat = t.dataset.cat; renderChips(); renderGrid(); updateFilterBadge(); });
 }
 function renderMoodChips(){
   const wrap = document.getElementById('moodChips');
   const all = ['Tümü', ...MOODS];
   wrap.innerHTML = all.map(m => `<div class="mood-chip ${activeMood===m?'active':''}" data-mood="${m}">${MOOD_ICON[m]||'🌈'} ${m}</div>`).join('');
-  wrap.querySelectorAll('.mood-chip').forEach(t => t.onclick = () => { activeMood = t.dataset.mood; renderMoodChips(); renderGrid(); });
+  wrap.querySelectorAll('.mood-chip').forEach(t => t.onclick = () => { activeMood = t.dataset.mood; renderMoodChips(); renderGrid(); updateFilterBadge(); });
+}
+
+let filtersExpanded = false;
+document.getElementById('filterToggleBtn').onclick = () => {
+  filtersExpanded = !filtersExpanded;
+  document.getElementById('extraFilters').classList.toggle('open', filtersExpanded);
+  document.getElementById('filterChevron').textContent = filtersExpanded ? '▴' : '▾';
+};
+function updateFilterBadge(){
+  const n = (activeCat!=='Tümü'?1:0) + (activeMood!=='Tümü'?1:0);
+  const badge = document.getElementById('filterBadge');
+  badge.style.display = n ? '' : 'none';
+  badge.textContent = n;
 }
 
 function renderFeatured(){
@@ -593,7 +678,7 @@ function startAddToCollection(businessId){
     ? myCollections.map(c => `<div class="collection-pick" data-cid="${c.id}">${c.name} ${c.is_public ? '' : '🔒'}</div>`).join('')
     : `<div class="empty" style="padding:10px 0;">Henüz listeniz yok, aşağıdan ilkini oluşturun.</div>`;
   pickWrap.querySelectorAll('.collection-pick').forEach(el => el.onclick = () => addToCollection(Number(el.dataset.cid)));
-  const savedCurator = localStorage.getItem('nook_curator_name') || '';
+  const savedCurator = myProfile?.display_name || localStorage.getItem('nook_curator_name') || '';
   document.getElementById('newListCurator').value = savedCurator;
   document.getElementById('newListName').value = '';
   document.getElementById('addMsg').innerHTML = '';
