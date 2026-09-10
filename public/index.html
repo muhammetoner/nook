@@ -727,8 +727,12 @@ function openAttractionSheet(id){
   const gallery = a.gallery && a.gallery.length
     ? `<div class="featured-row" style="margin-top:2px;">${a.gallery.map(u=>`<div class="feat-card" style="width:200px;height:130px;background-image:url('${u}')"></div>`).join('')}</div>`
     : '';
+  const storyHtml = (a.story || 'Bu yer için henüz bir hikaye eklenmemiş.')
+    .split(/\n\s*\n/)
+    .map(p => `<p style="font-size:14px; line-height:1.7; color:var(--ink); margin:0 0 14px;">${p.trim()}</p>`)
+    .join('');
   document.getElementById('sheetMenu').innerHTML = `
-    <p style="font-size:14px; line-height:1.7; color:var(--ink); margin:0 0 16px;">${a.story || 'Bu yer için henüz bir hikaye eklenmemiş.'}</p>
+    ${storyHtml}
     ${gallery}
   `;
   openOverlay('overlay');
