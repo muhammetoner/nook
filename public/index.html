@@ -23,6 +23,9 @@
   .logo{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--gold),var(--coral));display:flex;align-items:center;justify-content:center;font-weight:800;color:#1a1712;font-size:14px;}
   .brand-text h1{font-size:18px; margin:0; letter-spacing:-0.02em;}
   .brand-text small{color:var(--muted); font-size:11px;}
+  .auth-area{display:flex; align-items:center; gap:8px;}
+  .pill-btn{background:var(--bg-soft); border:1px solid var(--line); color:var(--ink); font-size:12.5px; font-weight:600; padding:8px 14px; border-radius:999px; cursor:pointer;}
+  .pill-btn.gold{background:var(--gold); color:#1a1712; border-color:var(--gold);}
   .tagline{font-family:Georgia,'Times New Roman',serif; font-style:italic; font-size:26px; margin:4px 0 16px; letter-spacing:-0.01em;}
   .tagline b{color:var(--gold); font-style:normal;}
 
@@ -32,6 +35,10 @@
   }
   .search input{flex:1;background:none;border:none;outline:none;color:var(--ink);font-size:14px;}
   .search input::placeholder{color:var(--muted)}
+
+  .view-switch{display:flex; gap:6px; background:var(--bg-soft); border:1px solid var(--line); border-radius:12px; padding:4px; margin-bottom:16px; width:max-content;}
+  .view-tab{padding:8px 18px; border-radius:9px; font-size:13px; font-weight:700; cursor:pointer; color:var(--muted);}
+  .view-tab.active{background:var(--gold); color:#1a1712;}
 
   .row-scroll{display:flex; gap:8px; overflow-x:auto; padding-bottom:4px; -ms-overflow-style:none; scrollbar-width:none;}
   .row-scroll::-webkit-scrollbar{display:none;}
@@ -45,10 +52,16 @@
     background:var(--bg-soft); border:1px solid var(--line); color:var(--muted); white-space:nowrap; margin-top:10px;
   }
   .cat-chip.active{background:var(--gold); border-color:var(--gold); color:#1a1712; font-weight:700;}
+  .mood-chip{
+    flex:none; padding:6px 13px; border-radius:999px; font-size:12.5px; cursor:pointer;
+    background:var(--bg-soft); border:1px solid var(--line); color:var(--muted); white-space:nowrap; margin-top:8px;
+  }
+  .mood-chip.active{background:var(--teal); border-color:var(--teal); color:#0d211d; font-weight:700;}
 
   main{max-width:1040px; margin:0 auto; padding:6px 20px 40px;}
-  .section-title{display:flex; align-items:center; gap:8px; font-size:13px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.06em; margin:30px 2px 14px;}
+  .section-title{display:flex; align-items:center; justify-content:space-between; gap:8px; font-size:13px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.06em; margin:30px 2px 14px;}
   .section-title .n{color:var(--ink); text-transform:none; font-weight:400; letter-spacing:0; font-size:12px;}
+  .back-link{color:var(--gold); font-size:12.5px; font-weight:700; cursor:pointer; text-transform:none; letter-spacing:0;}
 
   /* ---------- featured carousel ---------- */
   .featured-row{display:flex; gap:14px; overflow-x:auto; padding:4px 2px 10px; -ms-overflow-style:none; scrollbar-width:none;}
@@ -67,11 +80,16 @@
   .grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(230px,1fr)); gap:16px;}
   .card{
     background:var(--card); border:1px solid var(--line); border-radius:16px; overflow:hidden; cursor:pointer;
-    transition:.15s; display:flex; flex-direction:column;
+    transition:.15s; display:flex; flex-direction:column; position:relative;
   }
   .card:hover{transform:translateY(-3px); border-color:var(--gold);}
   .card .cover{height:130px; background-size:cover; background-position:center; position:relative;}
   .card .rate{position:absolute; top:8px; right:8px; background:rgba(20,18,16,.75); color:var(--gold); font-size:11px; font-weight:700; padding:3px 8px; border-radius:999px; display:flex; gap:3px; align-items:center;}
+  .bookmark-btn{
+    position:absolute; top:8px; left:8px; z-index:3; width:28px; height:28px; border-radius:999px;
+    background:rgba(20,18,16,.75); border:none; color:var(--gold); font-size:14px; cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+  }
   .card .body{padding:13px;}
   .card .cat-row{display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;}
   .card .cat{font-size:10.5px; font-weight:700; color:var(--coral); text-transform:uppercase; letter-spacing:.03em;}
@@ -79,20 +97,31 @@
   .card h3{margin:0 0 3px; font-size:15px;}
   .card p{margin:0; font-size:12.5px; color:var(--muted); line-height:1.4; min-height:2.6em;}
   .card .meta{display:flex; gap:5px; align-items:center; margin-top:10px; font-size:11.5px; color:var(--muted);}
+  .card .moods-row{display:flex; gap:4px; flex-wrap:wrap; margin-top:8px;}
+  .mood-tag{font-size:10px; background:var(--bg-soft); border:1px solid var(--line); color:var(--teal); padding:2px 7px; border-radius:999px;}
+
+  .list-card{background:var(--card); border:1px solid var(--line); border-radius:16px; padding:18px; cursor:pointer; transition:.15s;}
+  .list-card:hover{border-color:var(--gold); transform:translateY(-2px);}
+  .list-card h3{margin:0 0 4px; font-size:16px;}
+  .list-card .curator{font-size:12px; color:var(--gold); margin-bottom:8px;}
+  .list-card p{margin:0; font-size:12.5px; color:var(--muted); line-height:1.4;}
+  .list-card .count{margin-top:10px; font-size:11.5px; color:var(--muted);}
 
   .empty{padding:40px 10px; text-align:center; color:var(--muted); font-size:14px;}
 
-  /* ---------- detail sheet ---------- */
+  /* ---------- detail sheet / modals ---------- */
   .overlay{position:fixed; inset:0; background:rgba(8,7,6,.7); display:none; align-items:flex-end; justify-content:center; z-index:20;}
   .overlay.open{display:flex;}
+  .overlay.center{align-items:center;}
   .sheet{
     background:var(--bg-soft); width:100%; max-width:560px; border-radius:22px 22px 0 0; overflow-y:auto; max-height:88vh;
     animation:up .2s ease-out; border:1px solid var(--line); border-bottom:none;
   }
+  .overlay.center .sheet{border-radius:20px; border-bottom:1px solid var(--line); max-width:400px;}
   @keyframes up{from{transform:translateY(24px);opacity:0} to{transform:translateY(0);opacity:1}}
   .sheet-cover{height:170px; background-size:cover; background-position:center; position:relative;}
   .sheet-cover::after{content:''; position:absolute; inset:0; background:linear-gradient(180deg, rgba(0,0,0,0) 50%, var(--bg-soft) 100%);}
-  .sheet-body{padding:0 22px 26px;}
+  .sheet-body{padding:20px 22px 26px;}
   .sheet h2{margin:0 0 6px; font-size:22px;}
   .sheet-tags{display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-bottom:6px; font-size:12.5px; color:var(--muted);}
   .sheet-tags .rate{color:var(--gold); font-weight:700;}
@@ -105,6 +134,24 @@
   .menu-item .desc2{font-size:12px; color:var(--muted); margin-top:2px;}
   .menu-item .price2{font-weight:700; font-size:14px; white-space:nowrap; color:var(--gold);}
   .close-btn{width:100%; margin-top:20px; padding:13px; border-radius:12px; border:1px solid var(--line); background:none; color:var(--ink); font-size:14px; font-weight:600; cursor:pointer;}
+
+  label{display:block; font-size:12px; font-weight:600; color:var(--muted); margin:14px 0 6px;}
+  input[type=text], input[type=email], input[type=password], textarea, select{
+    width:100%; padding:10px 12px; border:1px solid var(--line); border-radius:10px; font-size:14px; font-family:inherit;
+    background:var(--bg); color:var(--ink);
+  }
+  .checkbox-row{display:flex; align-items:center; gap:8px; margin-top:14px; font-size:13px; color:var(--ink);}
+  .checkbox-row input{width:auto;}
+  .btn-block{width:100%; margin-top:18px; padding:12px; border-radius:10px; border:none; background:var(--gold); color:#1a1712; font-size:14px; font-weight:700; cursor:pointer;}
+  .link-btn{background:none; border:none; color:var(--gold); font-size:12.5px; cursor:pointer; padding:0; margin-top:12px;}
+  .msg{font-size:12.5px; margin-top:10px; padding:8px 10px; border-radius:8px;}
+  .msg.error{background:#3a2420; color:#f0a894;}
+  .msg.ok{background:#20342b; color:#7fd9a2;}
+  .collection-pick{padding:10px 12px; border:1px solid var(--line); border-radius:10px; margin-bottom:8px; cursor:pointer; font-size:13px;}
+  .collection-pick:hover{border-color:var(--gold);}
+  .my-list-row{display:flex; justify-content:space-between; align-items:center; padding:12px 0; border-top:1px solid var(--line);}
+  .my-list-row:first-of-type{border-top:none;}
+  .my-list-row .del{background:none; border:1px solid var(--line); color:#e2683f; font-size:11px; padding:5px 9px; border-radius:8px; cursor:pointer;}
 
   .status{position:fixed; bottom:14px; left:50%; transform:translateX(-50%); background:var(--card); border:1px solid var(--line); color:var(--muted); font-size:11px; padding:6px 14px; border-radius:999px;}
   footer{text-align:center; padding:24px; color:var(--muted); font-size:12px;}
@@ -119,26 +166,43 @@
       <div class="logo">N</div>
       <div class="brand-text"><h1>Nook</h1><small>yerel keşif rehberi</small></div>
     </div>
+    <div class="auth-area" id="authArea"></div>
   </div>
   <div class="tagline">Bugün <b>nereye</b> gidilir?</div>
   <div class="search">
     <span>🔎</span>
     <input placeholder="Mekan, kategori veya lezzet ara..." id="searchInput" />
   </div>
-  <div class="row-scroll" id="cityTabs"></div>
-  <div class="row-scroll" id="catChips"></div>
+
+  <div class="view-switch" id="viewSwitch">
+    <div class="view-tab active" data-view="discover">Keşfet</div>
+    <div class="view-tab" data-view="lists">Listeler</div>
+  </div>
+
+  <div id="discoverFilters">
+    <div class="row-scroll" id="cityTabs"></div>
+    <div class="row-scroll" id="catChips"></div>
+    <div class="row-scroll" id="moodChips"></div>
+  </div>
 </header>
 
 <main>
-  <div class="section-title">✨ Öne Çıkanlar</div>
-  <div class="featured-row" id="featuredRow"></div>
+  <div id="featuredSection">
+    <div class="section-title">✨ Öne Çıkanlar</div>
+    <div class="featured-row" id="featuredRow"></div>
+  </div>
 
-  <div class="section-title"><span id="listTitle">Tüm Mekanlar</span> <span class="n" id="listCount"></span></div>
+  <div class="section-title">
+    <span id="listTitle">Tüm Mekanlar</span>
+    <span class="n" id="listCount"></span>
+  </div>
+  <div id="backLinkWrap" style="display:none; margin:-6px 0 14px;"><span class="back-link" id="backLink">‹ Listelere dön</span></div>
   <div class="grid" id="grid"></div>
 </main>
 
 <footer>Nook · <a href="../admin/">Yönetici girişi</a></footer>
 
+<!-- mekan detay -->
 <div class="overlay" id="overlay">
   <div class="sheet">
     <div class="sheet-cover" id="sheetCover"></div>
@@ -148,7 +212,54 @@
       <div class="desc" id="sheetDesc"></div>
       <div class="menu-title">Menü</div>
       <div id="sheetMenu"></div>
-      <button class="close-btn" onclick="closeSheet()">Kapat</button>
+      <button class="close-btn" onclick="closeOverlay('overlay')">Kapat</button>
+    </div>
+  </div>
+</div>
+
+<!-- giriş / kayıt -->
+<div class="overlay center" id="authOverlay">
+  <div class="sheet">
+    <div class="sheet-body">
+      <h2 id="authTitle">Giriş yap</h2>
+      <p style="color:var(--muted); font-size:13px; margin:2px 0 0;" id="authHint">Koleksiyon oluşturmak için giriş yapın.</p>
+      <label>E-posta</label>
+      <input type="email" id="authEmail" placeholder="ornek@eposta.com">
+      <label>Şifre</label>
+      <input type="password" id="authPassword" placeholder="••••••••">
+      <button class="btn-block" id="authSubmit">Giriş yap</button>
+      <button class="link-btn" id="authToggle">Hesabınız yok mu? Kayıt olun</button>
+      <div id="authMsg"></div>
+      <button class="close-btn" onclick="closeOverlay('authOverlay')">Kapat</button>
+    </div>
+  </div>
+</div>
+
+<!-- koleksiyona ekle -->
+<div class="overlay center" id="addOverlay">
+  <div class="sheet">
+    <div class="sheet-body">
+      <h2>Koleksiyona ekle</h2>
+      <div id="myCollectionsPick"></div>
+      <label>Yeni liste adı</label>
+      <input type="text" id="newListName" placeholder="Örn. Favori kahvaltı yerlerim">
+      <label>Küratör adı</label>
+      <input type="text" id="newListCurator" placeholder="Adınız / rumuzunuz">
+      <div class="checkbox-row"><input type="checkbox" id="newListPublic" checked> Herkese açık olsun</div>
+      <button class="btn-block" id="createListBtn">Yeni liste oluştur ve ekle</button>
+      <div id="addMsg"></div>
+      <button class="close-btn" onclick="closeOverlay('addOverlay')">Kapat</button>
+    </div>
+  </div>
+</div>
+
+<!-- listelerim -->
+<div class="overlay center" id="myListsOverlay">
+  <div class="sheet">
+    <div class="sheet-body">
+      <h2>Listelerim</h2>
+      <div id="myListsBody"></div>
+      <button class="close-btn" onclick="closeOverlay('myListsOverlay')">Kapat</button>
     </div>
   </div>
 </div>
@@ -163,23 +274,31 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const CATEGORIES = ['Tümü','Yemek','Kafe','Restoran','Bar','Tatlıcı','Kahvaltı'];
 const CATEGORY_ICON = {'Yemek':'🍢','Kafe':'☕','Restoran':'🍽️','Bar':'🍸','Tatlıcı':'🍮','Kahvaltı':'🥐'};
+const MOODS = ['Romantik','Sessiz Çalışma','Arkadaşlarla','Aile ile','Manzaralı','Gece Sohbeti','Hızlı Atıştırma'];
+const MOOD_ICON = {'Romantik':'💕','Sessiz Çalışma':'🤫','Arkadaşlarla':'🎉','Aile ile':'👨‍👩‍👧','Manzaralı':'🌇','Gece Sohbeti':'🌙','Hızlı Atıştırma':'⚡'};
 
 let countries = [], cities = [], businesses = [];
 const menuCache = {};
 let activeCity = 'all';
 let activeCat = 'Tümü';
+let activeMood = 'Tümü';
+let currentView = 'discover'; // discover | lists | collection-detail
+let session = null;
+let myCollections = [];
+let pendingBusinessId = null; // koleksiyona eklenecek mekan
 
 function cityName(id){ return cities.find(c=>c.id===id)?.name ?? ''; }
 function countryOfCity(cityId){
   const c = cities.find(c=>c.id===cityId);
   return countries.find(co=>co.id===c?.country_id)?.name ?? '';
 }
-function currencyFor(cityId){
-  return countryOfCity(cityId) === 'Türkiye' ? '₺' : '€';
-}
+function currencyFor(cityId){ return countryOfCity(cityId) === 'Türkiye' ? '₺' : '€'; }
 function priceTag(level){ return level ? '₺'.repeat(level) : ''; }
 function coverStyle(b){ return b.image_url ? `background-image:url('${b.image_url}')` : `background:linear-gradient(135deg,#333,#555)`; }
+function closeOverlay(id){ document.getElementById(id).classList.remove('open'); }
+function openOverlay(id){ document.getElementById(id).classList.add('open'); }
 
+// ---------- veri yükleme ----------
 async function loadData(){
   const badge = document.getElementById('statusBadge');
   const [{data:c, error:e1}, {data:ci, error:e2}, {data:b, error:e3}] = await Promise.all([
@@ -196,10 +315,77 @@ async function loadData(){
   badge.textContent = `🟢 canlı — ${businesses.length} mekan, ${cities.length} şehir`;
   renderTabs();
   renderChips();
-  renderFeatured();
+  renderMoodChips();
+  renderDiscoverView();
+}
+
+// ---------- kimlik doğrulama ----------
+async function refreshSession(){
+  const { data:{ session: s } } = await sb.auth.getSession();
+  session = s;
+  renderAuthArea();
+  if(session) await loadMyCollections();
+}
+sb.auth.onAuthStateChange((_event, s) => { session = s; renderAuthArea(); if(session) loadMyCollections(); });
+
+function renderAuthArea(){
+  const area = document.getElementById('authArea');
+  if(session){
+    const label = session.user.email.split('@')[0];
+    area.innerHTML = `
+      <button class="pill-btn" id="myListsBtn">📚 Listelerim</button>
+      <button class="pill-btn" id="logoutBtn">${label} · Çıkış</button>`;
+    document.getElementById('myListsBtn').onclick = openMyLists;
+    document.getElementById('logoutBtn').onclick = async () => { await sb.auth.signOut(); session=null; renderAuthArea(); };
+  } else {
+    area.innerHTML = `<button class="pill-btn gold" id="loginBtn">Giriş yap</button>`;
+    document.getElementById('loginBtn').onclick = () => openOverlay('authOverlay');
+  }
+}
+
+let isSignUpMode = false;
+document.getElementById('authToggle').onclick = () => {
+  isSignUpMode = !isSignUpMode;
+  document.getElementById('authTitle').textContent = isSignUpMode ? 'Kayıt ol' : 'Giriş yap';
+  document.getElementById('authHint').textContent = isSignUpMode ? 'Kayıt sonrası e-postanıza gelen onay bağlantısına tıklayın.' : 'Koleksiyon oluşturmak için giriş yapın.';
+  document.getElementById('authSubmit').textContent = isSignUpMode ? 'Kayıt ol' : 'Giriş yap';
+  document.getElementById('authToggle').textContent = isSignUpMode ? 'Zaten hesabınız var mı? Giriş yapın' : 'Hesabınız yok mu? Kayıt olun';
+};
+document.getElementById('authSubmit').onclick = async () => {
+  const email = document.getElementById('authEmail').value.trim();
+  const password = document.getElementById('authPassword').value;
+  const msg = document.getElementById('authMsg');
+  msg.innerHTML = '';
+  if(!email || !password){ msg.innerHTML = `<div class="msg error">E-posta ve şifre gerekli.</div>`; return; }
+  const { data, error } = isSignUpMode ? await sb.auth.signUp({email, password}) : await sb.auth.signInWithPassword({email, password});
+  if(error){ msg.innerHTML = `<div class="msg error">${error.message}</div>`; return; }
+  if(isSignUpMode && data.user && !data.session){
+    msg.innerHTML = `<div class="msg ok">Kayıt oluşturuldu, e-postanızı onaylayıp tekrar giriş yapın.</div>`;
+    return;
+  }
+  session = data.session;
+  renderAuthArea();
+  await loadMyCollections();
+  closeOverlay('authOverlay');
+};
+
+// ---------- görünüm geçişi ----------
+document.querySelectorAll('.view-tab').forEach(t => t.onclick = () => switchView(t.dataset.view));
+function switchView(view){
+  currentView = view;
+  document.querySelectorAll('.view-tab').forEach(t => t.classList.toggle('active', t.dataset.view===view));
+  if(view === 'discover') renderDiscoverView();
+  if(view === 'lists') renderListsView();
+}
+
+function renderDiscoverView(){
+  document.getElementById('discoverFilters').style.display = '';
+  document.getElementById('featuredSection').style.display = '';
+  document.getElementById('backLinkWrap').style.display = 'none';
   renderGrid();
 }
 
+// ---------- filtre çipleri ----------
 function renderTabs(){
   const wrap = document.getElementById('cityTabs');
   const all = [{id:'all', name:'Tüm Şehirler'}, ...cities];
@@ -210,6 +396,12 @@ function renderChips(){
   const wrap = document.getElementById('catChips');
   wrap.innerHTML = CATEGORIES.map(cat => `<div class="cat-chip ${activeCat===cat?'active':''}" data-cat="${cat}">${CATEGORY_ICON[cat]||'✨'} ${cat}</div>`).join('');
   wrap.querySelectorAll('.cat-chip').forEach(t => t.onclick = () => { activeCat = t.dataset.cat; renderChips(); renderGrid(); });
+}
+function renderMoodChips(){
+  const wrap = document.getElementById('moodChips');
+  const all = ['Tümü', ...MOODS];
+  wrap.innerHTML = all.map(m => `<div class="mood-chip ${activeMood===m?'active':''}" data-mood="${m}">${MOOD_ICON[m]||'🌈'} ${m}</div>`).join('');
+  wrap.querySelectorAll('.mood-chip').forEach(t => t.onclick = () => { activeMood = t.dataset.mood; renderMoodChips(); renderGrid(); });
 }
 
 function renderFeatured(){
@@ -228,10 +420,41 @@ function renderFeatured(){
   row.querySelectorAll('.feat-card').forEach(el => el.onclick = () => openSheet(Number(el.dataset.id)));
 }
 
+// ---------- mekan ızgarası (keşfet + koleksiyon detayı ortak) ----------
+function businessCardHtml(b){
+  const moodsHtml = (b.moods && b.moods.length) ? `<div class="moods-row">${b.moods.map(m=>`<span class="mood-tag">${MOOD_ICON[m]||''} ${m}</span>`).join('')}</div>` : '';
+  return `
+    <div class="card" data-id="${b.id}">
+      <button class="bookmark-btn" data-bookmark="${b.id}" title="Koleksiyona ekle">🔖</button>
+      <div class="cover" style="${coverStyle(b)}">${b.rating ? `<div class="rate">⭐ ${b.rating}</div>` : ''}</div>
+      <div class="body">
+        <div class="cat-row">
+          <span class="cat">${CATEGORY_ICON[b.category]||''} ${b.category||''}</span>
+          <span class="price">${priceTag(b.price_level)}</span>
+        </div>
+        <h3>${b.name}</h3>
+        <p>${b.description||''}</p>
+        <div class="meta">📍 ${cityName(b.city_id)}, ${countryOfCity(b.city_id)}</div>
+        ${moodsHtml}
+      </div>
+    </div>`;
+}
+function wireBusinessGrid(list){
+  const grid = document.getElementById('grid');
+  grid.querySelectorAll('.card').forEach(el => {
+    el.onclick = (e) => { if(e.target.closest('[data-bookmark]')) return; openSheet(Number(el.dataset.id)); };
+  });
+  grid.querySelectorAll('[data-bookmark]').forEach(btn => {
+    btn.onclick = (e) => { e.stopPropagation(); startAddToCollection(Number(btn.dataset.bookmark)); };
+  });
+}
+
 function renderGrid(){
+  renderFeatured();
   const q = document.getElementById('searchInput').value.trim().toLowerCase();
   let list = businesses.filter(b => activeCity === 'all' || b.city_id === activeCity);
   if(activeCat !== 'Tümü') list = list.filter(b => b.category === activeCat);
+  if(activeMood !== 'Tümü') list = list.filter(b => (b.moods||[]).includes(activeMood));
   if(q){
     list = list.filter(b =>
       b.name.toLowerCase().includes(q) || (b.category||'').toLowerCase().includes(q) || (b.description||'').toLowerCase().includes(q)
@@ -245,22 +468,10 @@ function renderGrid(){
     grid.innerHTML = `<div class="empty">Aramanla eşleşen mekan bulunamadı.</div>`;
     return;
   }
-  grid.innerHTML = list.map(b => `
-    <div class="card" data-id="${b.id}">
-      <div class="cover" style="${coverStyle(b)}">${b.rating ? `<div class="rate">⭐ ${b.rating}</div>` : ''}</div>
-      <div class="body">
-        <div class="cat-row">
-          <span class="cat">${CATEGORY_ICON[b.category]||''} ${b.category||''}</span>
-          <span class="price">${priceTag(b.price_level)}</span>
-        </div>
-        <h3>${b.name}</h3>
-        <p>${b.description||''}</p>
-        <div class="meta">📍 ${cityName(b.city_id)}, ${countryOfCity(b.city_id)}</div>
-      </div>
-    </div>
-  `).join('');
-  grid.querySelectorAll('.card').forEach(el => el.onclick = () => openSheet(Number(el.dataset.id)));
+  grid.innerHTML = list.map(businessCardHtml).join('');
+  wireBusinessGrid(list);
 }
+document.getElementById('searchInput').addEventListener('input', () => { if(currentView==='discover') renderGrid(); });
 
 async function openSheet(id){
   const b = businesses.find(x=>x.id===id);
@@ -274,7 +485,7 @@ async function openSheet(id){
   `;
   document.getElementById('sheetDesc').textContent = b.description || '';
   document.getElementById('sheetMenu').innerHTML = `<div class="empty">Menü yükleniyor...</div>`;
-  document.getElementById('overlay').classList.add('open');
+  openOverlay('overlay');
 
   if(!menuCache[id]){
     const {data} = await sb.from('menus').select('*').eq('business_id', id).order('title');
@@ -291,10 +502,118 @@ async function openSheet(id){
       `).join('')
     : `<div class="empty">Bu mekan için henüz menü eklenmemiş.</div>`;
 }
-function closeSheet(){ document.getElementById('overlay').classList.remove('open'); }
-document.getElementById('overlay').addEventListener('click', e => { if(e.target.id==='overlay') closeSheet(); });
-document.getElementById('searchInput').addEventListener('input', renderGrid);
+document.getElementById('overlay').addEventListener('click', e => { if(e.target.id==='overlay') closeOverlay('overlay'); });
 
+// ---------- Listeler (herkese açık koleksiyonlar) ----------
+async function renderListsView(){
+  document.getElementById('discoverFilters').style.display = 'none';
+  document.getElementById('featuredSection').style.display = 'none';
+  document.getElementById('backLinkWrap').style.display = 'none';
+  document.getElementById('listTitle').textContent = 'Herkese Açık Listeler';
+
+  const { data, error } = await sb.from('collections').select('*, collection_items(count)').eq('is_public', true).order('created_at', {ascending:false});
+  const grid = document.getElementById('grid');
+  document.getElementById('listCount').textContent = error ? '' : `${(data||[]).length} liste`;
+  if(error || !data || !data.length){
+    grid.innerHTML = `<div class="empty">Henüz herkese açık bir liste yok. İlk listeyi siz oluşturun!</div>`;
+    return;
+  }
+  grid.innerHTML = data.map(c => `
+    <div class="list-card" data-id="${c.id}">
+      <h3>📚 ${c.name}</h3>
+      <div class="curator">${c.curator_name ? 'küratör: ' + c.curator_name : ''}</div>
+      <p>${c.description || ''}</p>
+      <div class="count">${c.collection_items[0]?.count ?? 0} mekan</div>
+    </div>
+  `).join('');
+  grid.querySelectorAll('.list-card').forEach(el => el.onclick = () => openCollectionDetail(Number(el.dataset.id)));
+}
+
+async function openCollectionDetail(collectionId){
+  currentView = 'collection-detail';
+  document.getElementById('discoverFilters').style.display = 'none';
+  document.getElementById('featuredSection').style.display = 'none';
+  document.getElementById('backLinkWrap').style.display = '';
+  document.getElementById('backLink').onclick = () => { switchView('lists'); };
+
+  const { data: col } = await sb.from('collections').select('*').eq('id', collectionId).maybeSingle();
+  const { data: items } = await sb.from('collection_items').select('business_id').eq('collection_id', collectionId);
+  const ids = (items||[]).map(i=>i.business_id);
+  const list = businesses.filter(b => ids.includes(b.id));
+
+  document.getElementById('listTitle').textContent = `📚 ${col?.name || 'Liste'}`;
+  document.getElementById('listCount').textContent = `${list.length} mekan`;
+  const grid = document.getElementById('grid');
+  grid.innerHTML = list.length ? list.map(businessCardHtml).join('') : `<div class="empty">Bu listede henüz mekan yok.</div>`;
+  wireBusinessGrid(list);
+}
+
+// ---------- koleksiyona ekle ----------
+async function loadMyCollections(){
+  if(!session) { myCollections = []; return; }
+  const { data } = await sb.from('collections').select('*').eq('owner_id', session.user.id).order('created_at', {ascending:false});
+  myCollections = data || [];
+}
+
+function startAddToCollection(businessId){
+  if(!session){ openOverlay('authOverlay'); return; }
+  pendingBusinessId = businessId;
+  const pickWrap = document.getElementById('myCollectionsPick');
+  pickWrap.innerHTML = myCollections.length
+    ? myCollections.map(c => `<div class="collection-pick" data-cid="${c.id}">${c.name} ${c.is_public ? '' : '🔒'}</div>`).join('')
+    : `<div class="empty" style="padding:10px 0;">Henüz listeniz yok, aşağıdan ilkini oluşturun.</div>`;
+  pickWrap.querySelectorAll('.collection-pick').forEach(el => el.onclick = () => addToCollection(Number(el.dataset.cid)));
+  const savedCurator = localStorage.getItem('nook_curator_name') || '';
+  document.getElementById('newListCurator').value = savedCurator;
+  document.getElementById('newListName').value = '';
+  document.getElementById('addMsg').innerHTML = '';
+  openOverlay('addOverlay');
+}
+
+async function addToCollection(collectionId){
+  const msg = document.getElementById('addMsg');
+  const { error } = await sb.from('collection_items').insert({ collection_id: collectionId, business_id: pendingBusinessId });
+  if(error && !error.message.includes('duplicate')){ msg.innerHTML = `<div class="msg error">${error.message}</div>`; return; }
+  msg.innerHTML = `<div class="msg ok">Eklendi ✓</div>`;
+  setTimeout(() => closeOverlay('addOverlay'), 700);
+}
+
+document.getElementById('createListBtn').onclick = async () => {
+  const name = document.getElementById('newListName').value.trim();
+  const curator = document.getElementById('newListCurator').value.trim();
+  const isPublic = document.getElementById('newListPublic').checked;
+  const msg = document.getElementById('addMsg');
+  if(!name){ msg.innerHTML = `<div class="msg error">Liste adı gerekli.</div>`; return; }
+  if(curator) localStorage.setItem('nook_curator_name', curator);
+
+  const { data: col, error } = await sb.from('collections').insert({
+    owner_id: session.user.id, name, curator_name: curator || null, is_public: isPublic,
+  }).select().maybeSingle();
+  if(error){ msg.innerHTML = `<div class="msg error">${error.message}</div>`; return; }
+  myCollections.unshift(col);
+  await addToCollection(col.id);
+};
+
+// ---------- listelerim ----------
+async function openMyLists(){
+  await loadMyCollections();
+  const body = document.getElementById('myListsBody');
+  body.innerHTML = myCollections.length
+    ? myCollections.map(c => `
+        <div class="my-list-row" data-id="${c.id}">
+          <div>${c.name} ${c.is_public ? '' : '🔒'} <span style="color:var(--muted); font-size:11px;">(${c.is_public?'herkese açık':'gizli'})</span></div>
+          <button class="del" data-del="${c.id}">Sil</button>
+        </div>`).join('')
+    : `<div class="empty">Henüz bir listeniz yok. Bir mekan kartındaki 🔖 ikonuyla ilk listenizi oluşturun.</div>`;
+  body.querySelectorAll('[data-del]').forEach(btn => btn.onclick = async () => {
+    if(!confirm('Bu listeyi silmek istediğinize emin misiniz?')) return;
+    await sb.from('collections').delete().eq('id', Number(btn.dataset.del));
+    openMyLists();
+  });
+  openOverlay('myListsOverlay');
+}
+
+refreshSession();
 loadData();
 </script>
 </body>
