@@ -204,13 +204,17 @@
   </div>
   <div class="tagline">Bugün <b>nereye</b> gidilir?</div>
   <div class="search">
-    <span>🔎</span>
+    <span style="color:var(--muted); display:flex;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>
     <input placeholder="Mekan, kategori veya lezzet ara..." id="searchInput" />
   </div>
 
   <div id="discoverFilters">
     <div class="row-scroll" id="cityTabs"></div>
-    <div class="filter-toggle" id="filterToggleBtn">🎛️ Kategori ve ruh hali filtreleri <span class="badge" id="filterBadge" style="display:none;"></span> <span id="filterChevron">▾</span></div>
+    <div class="filter-toggle" id="filterToggleBtn">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>
+      Kategori ve ruh hali filtreleri <span class="badge" id="filterBadge" style="display:none;"></span>
+      <svg id="filterChevron" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="transition:transform .15s;"><polyline points="6 9 12 15 18 9"/></svg>
+    </div>
     <div id="extraFilters">
       <div class="row-scroll" id="catChips"></div>
       <div class="row-scroll" id="moodChips"></div>
@@ -221,7 +225,7 @@
 
 <main>
   <div id="featuredSection">
-    <div class="section-title">✨ Öne Çıkanlar</div>
+    <div class="section-title">Öne Çıkanlar</div>
     <div class="featured-row" id="featuredRow">
       <div class="skeleton skel-feat"></div><div class="skeleton skel-feat"></div><div class="skeleton skel-feat"></div>
     </div>
@@ -242,16 +246,16 @@
 
 <nav class="bottom-bar">
   <div class="bottom-item view-tab active" data-view="discover">
-    <span class="bi-icon">🧭</span><span class="bi-label">Keşfet</span>
+    <span class="bi-icon"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg></span><span class="bi-label">Keşfet</span>
   </div>
   <div class="bottom-item view-tab" data-view="attractions">
-    <span class="bi-icon">🏛️</span><span class="bi-label">Gezilecek</span>
+    <span class="bi-icon"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 9 12 3 21 9"/><line x1="4" y1="22" x2="20" y2="22"/><line x1="6" y1="18" x2="6" y2="9"/><line x1="10" y1="18" x2="10" y2="9"/><line x1="14" y1="18" x2="14" y2="9"/><line x1="18" y1="18" x2="18" y2="9"/></svg></span><span class="bi-label">Gezilecek</span>
   </div>
   <div class="bottom-item view-tab" data-view="lists">
-    <span class="bi-icon">📚</span><span class="bi-label">Listeler</span>
+    <span class="bi-icon"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg></span><span class="bi-label">Listeler</span>
   </div>
   <div class="bottom-item" id="accountTab">
-    <span class="bi-icon" id="accountIcon">👤</span><span class="bi-label" id="accountLabel">Giriş</span>
+    <span class="bi-icon" id="accountIcon"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span><span class="bi-label" id="accountLabel">Giriş</span>
   </div>
 </nav>
 
@@ -337,9 +341,9 @@
   <div class="sheet">
     <div class="sheet-body">
       <h2 id="accountGreeting">Merhaba</h2>
-      <button class="btn-block" id="accMyListsBtn">📚 Listelerim</button>
-      <button class="btn-block" id="accEditNameBtn" style="background:#2a2722;color:var(--ink);margin-top:10px;">✏️ Görünen adımı düzenle</button>
-      <button class="btn-block" id="accLogoutBtn" style="background:#2a2722;color:var(--ink);margin-top:10px;">Çıkış yap</button>
+      <button class="btn-block" id="accMyListsBtn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px; margin-right:4px;"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg> Listelerim</button>
+      <button class="btn-block" id="accEditNameBtn" style="background:#2a2722;color:var(--ink);margin-top:10px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px; margin-right:4px;"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Görünen adımı düzenle</button>
+      <button class="btn-block" id="accLogoutBtn" style="background:#2a2722;color:var(--ink);margin-top:10px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px; margin-right:4px;"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg> Çıkış yap</button>
       <button class="close-btn" onclick="closeOverlay('accountOverlay')">Kapat</button>
     </div>
   </div>
@@ -352,6 +356,29 @@
 const SUPABASE_URL = 'https://iwkoxixoyjaxqsbjsjak.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_biY8I92YYNjwhG7gsff_yw_Sj8etOmt';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// ---------- ikon sistemi (tutarlı çizgi tabanlı SVG ikonlar) ----------
+const ICON_PATHS = {
+  search: '<circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>',
+  sliders: '<line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/>',
+  compass: '<circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/>',
+  landmark: '<polygon points="3 9 12 3 21 9"/><line x1="4" y1="22" x2="20" y2="22"/><line x1="6" y1="18" x2="6" y2="9"/><line x1="10" y1="18" x2="10" y2="9"/><line x1="14" y1="18" x2="14" y2="9"/><line x1="18" y1="18" x2="18" y2="9"/>',
+  bookmark: '<path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>',
+  user: '<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',
+  mapPin: '<path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>',
+  navigation: '<polygon points="3 11 22 2 13 21 11 13 3 11"/>',
+  chevronDown: '<polyline points="6 9 12 15 18 9"/>',
+  chevronUp: '<polyline points="18 15 12 9 6 15"/>',
+  chevronLeft: '<polyline points="15 18 9 12 15 6"/>',
+  edit: '<path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>',
+  logout: '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>',
+};
+function icon(name, size=18, sw=2){
+  return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${sw}" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px">${ICON_PATHS[name]||''}</svg>`;
+}
+function starIcon(size=13){
+  return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="currentColor" stroke="none" style="vertical-align:-2px"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`;
+}
 
 const CATEGORIES = ['Tümü','Yemek','Kafe','Restoran','Bar','Tatlıcı','Kahvaltı'];
 const CATEGORY_ICON = {'Yemek':'🍢','Kafe':'☕','Restoran':'🍽️','Bar':'🍸','Tatlıcı':'🍮','Kahvaltı':'🥐'};
@@ -433,15 +460,8 @@ function displayName(){
 }
 
 function renderAuthArea(){
-  const icon = document.getElementById('accountIcon');
   const label = document.getElementById('accountLabel');
-  if(session){
-    icon.textContent = '👤';
-    label.textContent = displayName();
-  } else {
-    icon.textContent = '👤';
-    label.textContent = 'Giriş';
-  }
+  label.textContent = session ? displayName() : 'Giriş';
 }
 
 document.getElementById('accountTab').onclick = () => {
@@ -568,7 +588,7 @@ let filtersExpanded = false;
 document.getElementById('filterToggleBtn').onclick = () => {
   filtersExpanded = !filtersExpanded;
   document.getElementById('extraFilters').classList.toggle('open', filtersExpanded);
-  document.getElementById('filterChevron').textContent = filtersExpanded ? '▴' : '▾';
+  document.getElementById('filterChevron').style.transform = filtersExpanded ? 'rotate(180deg)' : 'rotate(0deg)';
 };
 function updateFilterBadge(){
   const n = (activeCat!=='Tümü'?1:0) + (activeMood!=='Tümü'?1:0);
@@ -583,7 +603,7 @@ function renderFeatured(){
   if(!featured.length){ row.innerHTML = `<div class="empty">Henüz öne çıkan mekan yok.</div>`; return; }
   row.innerHTML = featured.map(b => `
     <div class="feat-card" style="${coverStyle(b)}" data-id="${b.id}">
-      <div class="feat-badge">⭐ ${b.rating ?? '–'}</div>
+      <div class="feat-badge">${starIcon(12)} ${b.rating ?? '–'}</div>
       <div class="feat-info">
         <h3>${b.name}</h3>
         <div class="sub">${cityName(b.city_id)} · ${b.category||''} · ${priceTag(b.price_level)}</div>
@@ -598,8 +618,8 @@ function businessCardHtml(b){
   const moodsHtml = (b.moods && b.moods.length) ? `<div class="moods-row">${b.moods.map(m=>`<span class="mood-tag">${MOOD_ICON[m]||''} ${m}</span>`).join('')}</div>` : '';
   return `
     <div class="card" data-id="${b.id}">
-      <button class="bookmark-btn" data-bookmark="${b.id}" title="Koleksiyona ekle">🔖</button>
-      <div class="cover" style="${coverStyle(b)}">${b.rating ? `<div class="rate">⭐ ${b.rating}</div>` : ''}</div>
+      <button class="bookmark-btn" data-bookmark="${b.id}" title="Koleksiyona ekle">${icon('bookmark',15)}</button>
+      <div class="cover" style="${coverStyle(b)}">${b.rating ? `<div class="rate">${starIcon(12)} ${b.rating}</div>` : ''}</div>
       <div class="body">
         <div class="cat-row">
           <span class="cat">${CATEGORY_ICON[b.category]||''} ${b.category||''}</span>
@@ -607,7 +627,7 @@ function businessCardHtml(b){
         </div>
         <h3>${b.name}</h3>
         <p>${b.description||''}</p>
-        <div class="meta">📍 ${cityName(b.city_id)}, ${countryOfCity(b.city_id)}</div>
+        <div class="meta">${icon('mapPin',13)} ${cityName(b.city_id)}, ${countryOfCity(b.city_id)}</div>
         ${moodsHtml}
       </div>
     </div>`;
@@ -656,10 +676,10 @@ async function openSheet(id){
   document.getElementById('sheetCover').style.cssText = coverStyle(b);
   document.getElementById('sheetName').textContent = b.name;
   document.getElementById('sheetTags').innerHTML = `
-    ${b.rating ? `<span class="rate">⭐ ${b.rating}</span>` : ''}
+    ${b.rating ? `<span class="rate">${starIcon(13)} ${b.rating}</span>` : ''}
     <span>·</span><span>${CATEGORY_ICON[b.category]||''} ${b.category||''}</span>
     <span>·</span><span class="price">${priceTag(b.price_level)}</span>
-    <span>·</span><span>📍 ${cityName(b.city_id)}, ${countryOfCity(b.city_id)}</span>
+    <span>·</span><span>${icon('mapPin',13)} ${cityName(b.city_id)}, ${countryOfCity(b.city_id)}</span>
   `;
   document.getElementById('sheetDesc').textContent = b.description || '';
   document.getElementById('sheetMenu').innerHTML = `<div class="empty">Menü yükleniyor...</div>`;
@@ -695,7 +715,7 @@ function attractionCardHtml(a){
         </div>
         <h3>${a.name}</h3>
         <p>${a.short_description||''}</p>
-        <div class="meta">📍 ${cityName(a.city_id)}, ${countryOfCity(a.city_id)}</div>
+        <div class="meta">${icon('mapPin',13)} ${cityName(a.city_id)}, ${countryOfCity(a.city_id)}</div>
       </div>
     </div>`;
 }
@@ -730,7 +750,7 @@ function openAttractionSheet(id){
   document.getElementById('sheetTags').innerHTML = `
     <span>${ATTR_CATEGORY_ICON[a.category]||''} ${a.category||''}</span>
     ${a.era ? `<span>·</span><span class="price">${a.era}</span>` : ''}
-    <span>·</span><span>📍 ${cityName(a.city_id)}, ${countryOfCity(a.city_id)}</span>
+    <span>·</span><span>${icon('mapPin',13)} ${cityName(a.city_id)}, ${countryOfCity(a.city_id)}</span>
   `;
   document.getElementById('sheetDesc').textContent = a.short_description || '';
   const gallery = a.gallery && a.gallery.length
@@ -755,7 +775,7 @@ function mapRowHtml(lat, lng){
       <div class="map-embed" onclick="window.open('https://maps.google.com/maps?q=${lat},${lng}&z=16','_blank')" title="Haritada aç">
         <iframe src="https://maps.google.com/maps?q=${lat},${lng}&z=15&output=embed" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
       </div>
-      <button class="map-directions-btn" onclick="getDirections(${lat}, ${lng})">📍 Yol tarifi al</button>
+      <button class="map-directions-btn" onclick="getDirections(${lat}, ${lng})">${icon('navigation',14)} Yol tarifi al</button>
     </div>
   `;
 }
@@ -816,7 +836,7 @@ function renderListsGrid(){
   }
   grid.innerHTML = list.map(c => `
     <div class="list-card" data-id="${c.id}">
-      <h3>📚 ${c.name}</h3>
+      <h3>${icon('bookmark',15)} ${c.name}</h3>
       <div class="curator">${c.curator_name ? 'küratör: ' + c.curator_name : ''}</div>
       <p>${c.description || ''}</p>
       <div class="count">${c.collection_items[0]?.count ?? 0} mekan</div>
@@ -837,7 +857,7 @@ async function openCollectionDetail(collectionId){
   const ids = (items||[]).map(i=>i.business_id);
   const list = businesses.filter(b => ids.includes(b.id));
 
-  document.getElementById('listTitle').textContent = `📚 ${col?.name || 'Liste'}`;
+  document.getElementById('listTitle').textContent = col?.name || 'Liste';
   document.getElementById('listCount').textContent = `${list.length} mekan`;
   const grid = document.getElementById('grid');
   grid.innerHTML = list.length ? list.map(businessCardHtml).join('') : `<div class="empty">Bu listede henüz mekan yok.</div>`;
@@ -901,7 +921,7 @@ async function openMyLists(){
           <div>${c.name} ${c.is_public ? '' : '🔒'} <span style="color:var(--muted); font-size:11px;">(${c.is_public?'herkese açık':'gizli'})</span></div>
           <button class="del" data-del="${c.id}">Sil</button>
         </div>`).join('')
-    : `<div class="empty">Henüz bir listeniz yok. Bir mekan kartındaki 🔖 ikonuyla ilk listenizi oluşturun.</div>`;
+    : `<div class="empty">Henüz bir listeniz yok. Bir mekan kartındaki yer imi ikonuyla ilk listenizi oluşturun.</div>`;
   body.querySelectorAll('[data-del]').forEach(btn => btn.onclick = async () => {
     if(!confirm('Bu listeyi silmek istediğinize emin misiniz?')) return;
     await sb.from('collections').delete().eq('id', Number(btn.dataset.del));
