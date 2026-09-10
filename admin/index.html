@@ -1,0 +1,358 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>biMekan — Yönetici Paneli</title>
+<style>
+  :root{
+    --bg:#f6f5f2; --card:#ffffff; --ink:#1c1b19; --muted:#6b6660;
+    --accent:#e2622a; --line:#e9e6e0; --danger:#c0392b;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;}
+  header{padding:18px 24px; background:linear-gradient(135deg,#20201e,#3a2a20); color:#fff; display:flex; align-items:center; justify-content:space-between;}
+  .brand{display:flex; align-items:center; gap:10px;}
+  .logo{width:30px;height:30px;border-radius:8px;background:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;}
+  header h1{font-size:16px; margin:0;}
+  header small{opacity:.7; font-size:12px;}
+  #logoutBtn{background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.2); color:#fff; padding:7px 14px; border-radius:10px; cursor:pointer; font-size:13px;}
+
+  /* auth screen */
+  .auth-wrap{max-width:380px; margin:80px auto; padding:0 20px;}
+  .auth-card{background:var(--card); border:1px solid var(--line); border-radius:16px; padding:28px;}
+  .auth-card h2{margin:0 0 4px; font-size:20px;}
+  .auth-card p.hint{color:var(--muted); font-size:13px; margin:0 0 20px;}
+  label{display:block; font-size:12px; font-weight:600; color:var(--muted); margin:14px 0 6px;}
+  input, select, textarea{
+    width:100%; padding:10px 12px; border:1px solid var(--line); border-radius:10px; font-size:14px; font-family:inherit;
+  }
+  textarea{resize:vertical; min-height:60px;}
+  .btn{
+    padding:10px 16px; border-radius:10px; border:none; font-size:14px; font-weight:600; cursor:pointer;
+  }
+  .btn-primary{background:var(--accent); color:#fff; width:100%; margin-top:18px;}
+  .btn-secondary{background:#eee; color:var(--ink);}
+  .btn-danger{background:var(--danger); color:#fff;}
+  .link-btn{background:none; border:none; color:var(--accent); font-size:13px; cursor:pointer; padding:0; margin-top:14px;}
+  .msg{font-size:13px; margin-top:12px; padding:10px; border-radius:8px;}
+  .msg.error{background:#fdeceb; color:var(--danger);}
+  .msg.ok{background:#eaf7ee; color:#1e7e34;}
+
+  /* app */
+  main{max-width:1000px; margin:0 auto; padding:20px;}
+  .tabs{display:flex; gap:8px; margin-bottom:18px; flex-wrap:wrap;}
+  .tab{padding:8px 16px; border-radius:999px; background:#fff; border:1px solid var(--line); cursor:pointer; font-size:13px; font-weight:600;}
+  .tab.active{background:var(--ink); color:#fff; border-color:var(--ink);}
+  .panel-head{display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;}
+  .panel-head h2{font-size:16px; margin:0;}
+  table{width:100%; border-collapse:collapse; background:#fff; border-radius:12px; overflow:hidden; border:1px solid var(--line);}
+  th, td{text-align:left; padding:10px 12px; font-size:13px; border-bottom:1px solid var(--line);}
+  th{background:#f0ede7; color:var(--muted); font-weight:600; text-transform:uppercase; font-size:11px;}
+  tr:last-child td{border-bottom:none;}
+  .row-actions{display:flex; gap:6px;}
+  .row-actions button{padding:5px 10px; font-size:12px; border-radius:8px; border:1px solid var(--line); background:#fff; cursor:pointer;}
+  .row-actions button.danger{color:var(--danger); border-color:#f3c9c4;}
+  img.thumb{width:36px; height:36px; border-radius:8px; object-fit:cover; background:#eee;}
+
+  .modal-overlay{position:fixed; inset:0; background:rgba(20,18,15,.5); display:none; align-items:center; justify-content:center; z-index:30; padding:20px;}
+  .modal-overlay.open{display:flex;}
+  .modal{background:#fff; border-radius:16px; padding:24px; width:100%; max-width:420px; max-height:88vh; overflow-y:auto;}
+  .modal h3{margin:0 0 4px;}
+  .modal-actions{display:flex; gap:8px; margin-top:20px;}
+  .modal-actions .btn{flex:1;}
+  .empty{color:var(--muted); font-size:13px; padding:20px; text-align:center;}
+</style>
+</head>
+<body>
+
+<div id="authScreen" class="auth-wrap">
+  <div class="auth-card">
+    <h2>biMekan Yönetici</h2>
+    <p class="hint" id="authHint">Devam etmek için giriş yapın.</p>
+    <label>E-posta</label>
+    <input type="email" id="authEmail" placeholder="ornek@eposta.com" />
+    <label>Şifre</label>
+    <input type="password" id="authPassword" placeholder="••••••••" />
+    <button class="btn btn-primary" id="signInBtn">Giriş yap</button>
+    <button class="link-btn" id="toggleSignUp">Hesabınız yok mu? Kayıt olun</button>
+    <div id="authMsg"></div>
+  </div>
+</div>
+
+<div id="app" style="display:none;">
+  <header>
+    <div class="brand">
+      <div class="logo">bM</div>
+      <div><h1>biMekan Yönetici</h1><small id="whoami"></small></div>
+    </div>
+    <button id="logoutBtn">Çıkış yap</button>
+  </header>
+  <main>
+    <div class="tabs">
+      <div class="tab active" data-tab="countries">Ülkeler</div>
+      <div class="tab" data-tab="cities">Şehirler</div>
+      <div class="tab" data-tab="businesses">Mekanlar</div>
+      <div class="tab" data-tab="menus">Menüler</div>
+    </div>
+    <div class="panel-head">
+      <h2 id="panelTitle">Ülkeler</h2>
+      <button class="btn btn-primary" id="addBtn" style="width:auto;">+ Ekle</button>
+    </div>
+    <div id="tableWrap"></div>
+  </main>
+</div>
+
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <h3 id="modalTitle">Ekle</h3>
+    <form id="modalForm"></form>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" type="button" id="modalCancel">Vazgeç</button>
+      <button class="btn btn-primary" type="submit" form="modalForm">Kaydet</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+const SUPABASE_URL = 'https://iwkoxixoyjaxqsbjsjak.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_biY8I92YYNjwhG7gsff_yw_Sj8etOmt';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+let isSignUpMode = false;
+let session = null;
+let profile = null;
+
+const authScreen = document.getElementById('authScreen');
+const app = document.getElementById('app');
+const authMsg = document.getElementById('authMsg');
+
+document.getElementById('toggleSignUp').onclick = () => {
+  isSignUpMode = !isSignUpMode;
+  document.getElementById('authHint').textContent = isSignUpMode
+    ? 'İlk kayıt olan kişi otomatik yönetici olur.'
+    : 'Devam etmek için giriş yapın.';
+  document.getElementById('signInBtn').textContent = isSignUpMode ? 'Kayıt ol' : 'Giriş yap';
+  document.getElementById('toggleSignUp').textContent = isSignUpMode ? 'Zaten hesabınız var mı? Giriş yapın' : 'Hesabınız yok mu? Kayıt olun';
+};
+
+document.getElementById('signInBtn').onclick = async () => {
+  const email = document.getElementById('authEmail').value.trim();
+  const password = document.getElementById('authPassword').value;
+  authMsg.innerHTML = '';
+  if(!email || !password){
+    authMsg.innerHTML = `<div class="msg error">E-posta ve şifre gerekli.</div>`;
+    return;
+  }
+  const { data, error } = isSignUpMode
+    ? await sb.auth.signUp({ email, password })
+    : await sb.auth.signInWithPassword({ email, password });
+
+  if(error){
+    authMsg.innerHTML = `<div class="msg error">${error.message}</div>`;
+    return;
+  }
+  if(isSignUpMode && data.user && !data.session){
+    authMsg.innerHTML = `<div class="msg ok">Kayıt oluşturuldu. E-postanıza gelen onay bağlantısına tıklayıp tekrar giriş yapın.</div>`;
+    return;
+  }
+  await onAuthed();
+};
+
+document.getElementById('logoutBtn').onclick = async () => {
+  await sb.auth.signOut();
+  location.reload();
+};
+
+async function onAuthed(){
+  const { data: { session: s } } = await sb.auth.getSession();
+  session = s;
+  if(!session){ return; }
+  const { data: prof } = await sb.from('profiles').select('*').eq('id', session.user.id).maybeSingle();
+  profile = prof;
+  if(!profile || profile.role !== 'admin'){
+    authMsg.innerHTML = `<div class="msg error">Bu hesabın yönetici yetkisi yok.</div>`;
+    await sb.auth.signOut();
+    return;
+  }
+  authScreen.style.display = 'none';
+  app.style.display = 'block';
+  document.getElementById('whoami').textContent = session.user.email;
+  loadTab('countries');
+}
+
+(async () => {
+  const { data: { session: s } } = await sb.auth.getSession();
+  if(s){ await onAuthed(); }
+})();
+
+// ---------- veri katmanı ----------
+const ENTITIES = {
+  countries: {
+    label:'Ülkeler', table:'countries',
+    columns:[{key:'name', label:'Ad'}],
+    fields:[{name:'name', label:'Ad', type:'text', required:true}],
+  },
+  cities: {
+    label:'Şehirler', table:'cities',
+    columns:[{key:'name', label:'Ad'}, {key:'country_id', label:'Ülke', ref:'countries'}],
+    fields:[
+      {name:'name', label:'Ad', type:'text', required:true},
+      {name:'country_id', label:'Ülke', type:'select', ref:'countries', required:true},
+    ],
+  },
+  businesses: {
+    label:'Mekanlar', table:'businesses',
+    columns:[{key:'name', label:'Ad'}, {key:'city_id', label:'Şehir', ref:'cities'}, {key:'category', label:'Kategori'}, {key:'image_url', label:'Görsel', img:true}],
+    fields:[
+      {name:'name', label:'Ad', type:'text', required:true},
+      {name:'city_id', label:'Şehir', type:'select', ref:'cities', required:true},
+      {name:'category', label:'Kategori', type:'text'},
+      {name:'description', label:'Açıklama', type:'textarea'},
+      {name:'image_url', label:'Görsel', type:'image', bucket:'business-images'},
+    ],
+  },
+  menus: {
+    label:'Menüler', table:'menus',
+    columns:[{key:'title', label:'Ad'}, {key:'business_id', label:'Mekan', ref:'businesses'}, {key:'price', label:'Fiyat'}],
+    fields:[
+      {name:'business_id', label:'Mekan', type:'select', ref:'businesses', required:true},
+      {name:'title', label:'Ad', type:'text', required:true},
+      {name:'description', label:'Açıklama', type:'textarea'},
+      {name:'price', label:'Fiyat (₺)', type:'number'},
+      {name:'image_url', label:'Görsel', type:'image', bucket:'business-images'},
+    ],
+  },
+};
+
+let activeTab = 'countries';
+let refCache = {};
+
+async function loadRefs(){
+  const [{data:countries}, {data:cities}, {data:businesses}] = await Promise.all([
+    sb.from('countries').select('id,name'),
+    sb.from('cities').select('id,name'),
+    sb.from('businesses').select('id,name'),
+  ]);
+  refCache = { countries, cities, businesses };
+}
+function refLabel(entityKey, id){
+  const rows = refCache[entityKey] || [];
+  return rows.find(r=>r.id===id)?.name ?? id;
+}
+
+document.querySelectorAll('.tab').forEach(t => t.onclick = () => {
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+  t.classList.add('active');
+  loadTab(t.dataset.tab);
+});
+
+async function loadTab(tab){
+  activeTab = tab;
+  const conf = ENTITIES[tab];
+  document.getElementById('panelTitle').textContent = conf.label;
+  await loadRefs();
+  const { data, error } = await sb.from(conf.table).select('*').order('id', {ascending:false});
+  const wrap = document.getElementById('tableWrap');
+  if(error){ wrap.innerHTML = `<div class="empty">Yüklenemedi: ${error.message}</div>`; return; }
+  if(!data.length){ wrap.innerHTML = `<div class="empty">Henüz kayıt yok.</div>`; return; }
+
+  wrap.innerHTML = `<table><thead><tr>${conf.columns.map(c=>`<th>${c.label}</th>`).join('')}<th></th></tr></thead>
+    <tbody>${data.map(row => `
+      <tr data-id="${row.id}">
+        ${conf.columns.map(c => {
+          if(c.img) return `<td>${row[c.key] ? `<img class="thumb" src="${row[c.key]}">` : '—'}</td>`;
+          if(c.ref) return `<td>${refLabel(c.ref, row[c.key])}</td>`;
+          return `<td>${row[c.key] ?? ''}</td>`;
+        }).join('')}
+        <td class="row-actions">
+          <button data-act="edit">Düzenle</button>
+          <button data-act="del" class="danger">Sil</button>
+        </td>
+      </tr>
+    `).join('')}</tbody></table>`;
+
+  wrap.querySelectorAll('button[data-act="edit"]').forEach(b => b.onclick = (e) => {
+    const id = Number(e.target.closest('tr').dataset.id);
+    openModal(data.find(r=>r.id===id));
+  });
+  wrap.querySelectorAll('button[data-act="del"]').forEach(b => b.onclick = async (e) => {
+    const id = Number(e.target.closest('tr').dataset.id);
+    if(!confirm('Bu kaydı silmek istediğinize emin misiniz?')) return;
+    const { error } = await sb.from(conf.table).delete().eq('id', id);
+    if(error){ alert('Silinemedi: ' + error.message); return; }
+    loadTab(tab);
+  });
+}
+
+document.getElementById('addBtn').onclick = () => openModal(null);
+document.getElementById('modalCancel').onclick = () => closeModal();
+
+function closeModal(){ document.getElementById('modalOverlay').classList.remove('open'); }
+
+function openModal(row){
+  const conf = ENTITIES[activeTab];
+  document.getElementById('modalTitle').textContent = row ? `${conf.label.slice(0,-3) || conf.label} düzenle` : `Yeni ${conf.label}`;
+  const form = document.getElementById('modalForm');
+  form.innerHTML = conf.fields.map(f => {
+    const val = row ? (row[f.name] ?? '') : '';
+    if(f.type === 'select'){
+      const opts = (refCache[f.ref]||[]).map(r => `<option value="${r.id}" ${row && row[f.name]===r.id ? 'selected':''}>${r.name}</option>`).join('');
+      return `<label>${f.label}</label><select name="${f.name}" ${f.required?'required':''}>${opts}</select>`;
+    }
+    if(f.type === 'textarea'){
+      return `<label>${f.label}</label><textarea name="${f.name}">${val}</textarea>`;
+    }
+    if(f.type === 'image'){
+      return `<label>${f.label}</label>
+        <input type="hidden" name="${f.name}" value="${val}">
+        <input type="file" accept="image/*" data-image-for="${f.name}" data-bucket="${f.bucket}">
+        ${val ? `<img class="thumb" style="margin-top:8px" src="${val}">` : ''}
+        <div style="font-size:11px;color:var(--muted);margin-top:4px;" data-upload-status="${f.name}"></div>`;
+    }
+    return `<label>${f.label}</label><input type="${f.type}" name="${f.name}" value="${val}" ${f.required?'required':''}>`;
+  }).join('');
+
+  form.querySelectorAll('input[type=file]').forEach(fileInput => {
+    fileInput.onchange = async () => {
+      const file = fileInput.files[0];
+      if(!file) return;
+      const bucket = fileInput.dataset.bucket;
+      const fieldName = fileInput.dataset.imageFor;
+      const statusEl = form.querySelector(`[data-upload-status="${fieldName}"]`);
+      statusEl.textContent = 'Yükleniyor...';
+      const path = `${Date.now()}_${file.name}`;
+      const { error } = await sb.storage.from(bucket).upload(path, file);
+      if(error){ statusEl.textContent = 'Hata: ' + error.message; return; }
+      const { data: pub } = sb.storage.from(bucket).getPublicUrl(path);
+      form.querySelector(`input[name="${fieldName}"]`).value = pub.publicUrl;
+      statusEl.textContent = 'Yüklendi ✓';
+    };
+  });
+
+  document.getElementById('modalOverlay').classList.add('open');
+
+  form.onsubmit = async (e) => {
+    e.preventDefault();
+    const fd = new FormData(form);
+    const payload = {};
+    conf.fields.forEach(f => {
+      let v = fd.get(f.name);
+      if(f.type === 'select' || f.name.endsWith('_id')) v = v ? Number(v) : null;
+      if(f.type === 'number') v = v === '' ? null : Number(v);
+      if(f.type === 'image' && v === '') v = null;
+      payload[f.name] = v;
+    });
+    const conf2 = ENTITIES[activeTab];
+    const { error } = row
+      ? await sb.from(conf2.table).update(payload).eq('id', row.id)
+      : await sb.from(conf2.table).insert(payload);
+    if(error){ alert('Kaydedilemedi: ' + error.message); return; }
+    closeModal();
+    loadTab(activeTab);
+  };
+}
+</script>
+</body>
+</html>
