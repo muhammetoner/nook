@@ -217,7 +217,7 @@ const ENTITIES = {
   },
   businesses: {
     label:'Mekanlar', table:'businesses',
-    columns:[{key:'name', label:'Ad'}, {key:'city_id', label:'Şehir', ref:'cities'}, {key:'category', label:'Kategori'}, {key:'rating', label:'Puan'}, {key:'price_level', label:'₺'}, {key:'featured', label:'Öne Çıkan'}, {key:'owner_id', label:'Sahip', owner:true}, {key:'image_url', label:'Görsel', img:true}],
+    columns:[{key:'name', label:'Ad'}, {key:'city_id', label:'Şehir', ref:'cities'}, {key:'category', label:'Kategori'}, {key:'rating', label:'Puan'}, {key:'price_level', label:'₺'}, {key:'featured', label:'Öne Çıkan'}, {key:'is_active', label:'Durum', status:true}, {key:'owner_id', label:'Sahip', owner:true}, {key:'image_url', label:'Görsel', img:true}],
     fields:[
       {name:'name', label:'Ad', type:'text', required:true},
       {name:'city_id', label:'Şehir', type:'select', ref:'cities', required:true},
@@ -226,6 +226,7 @@ const ENTITIES = {
       {name:'rating', label:'Puan (0-5)', type:'number', step:'0.1'},
       {name:'price_level', label:'Fiyat seviyesi (1-3)', type:'number', min:1, max:3},
       {name:'featured', label:'Öne çıkan mekan', type:'checkbox'},
+      {name:'is_active', label:'Herkese açık (işaretli değilse erişim engellenir)', type:'checkbox', default:true},
       {name:'moods', label:'Ruh hali etiketleri', type:'multiselect', options:['Romantik','Sessiz Çalışma','Arkadaşlarla','Aile ile','Manzaralı','Gece Sohbeti','Hızlı Atıştırma']},
       {name:'image_url', label:'Kapak görseli', type:'image', bucket:'business-images'},
       {name:'gallery', label:'Ek galeri görselleri', type:'imagelist', bucket:'business-images'},
@@ -316,6 +317,7 @@ async function loadTab(tab){
         ${conf.columns.map(c => {
           if(c.img) return `<td>${row[c.key] ? `<img class="thumb" src="${row[c.key]}">` : '—'}</td>`;
           if(c.owner) return `<td>${profilesCache.find(p=>p.id===row[c.key])?.email ?? '—'}</td>`;
+          if(c.status) return `<td>${row[c.key] ? '<span style="color:#7fd9a2;">● Aktif</span>' : '<span style="color:var(--danger);">● Engelli</span>'}</td>`;
           if(c.ref) return `<td>${refLabel(c.ref, row[c.key])}</td>`;
           if(typeof row[c.key] === 'boolean') return `<td>${row[c.key] ? '⭐ Evet' : '—'}</td>`;
           return `<td>${row[c.key] ?? ''}</td>`;
@@ -365,8 +367,9 @@ function openModal(row){
       return `<label>${f.label}</label><select name="${f.name}" ${f.required?'required':''}><option value="">—</option>${opts}</select>`;
     }
     if(f.type === 'checkbox'){
+      const checked = row ? !!row[f.name] : !!f.default;
       return `<label style="display:flex;align-items:center;gap:8px;margin-top:16px;">
-        <input type="checkbox" name="${f.name}" style="width:auto;" ${row && row[f.name] ? 'checked':''}> ${f.label}
+        <input type="checkbox" name="${f.name}" style="width:auto;" ${checked ? 'checked':''}> ${f.label}
       </label>`;
     }
     if(f.type === 'multiselect'){

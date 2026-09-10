@@ -1,0 +1,334 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+<meta http-equiv="Pragma" content="no-cache" />
+<meta http-equiv="Expires" content="0" />
+<title>Nook — İşletmeci Paneli</title>
+<style>
+  :root{
+    --bg:#141210; --card:#1c1a16; --ink:#f5f1e8; --muted:#a79f8f;
+    --accent:#e0b04c; --line:#33302a; --danger:#e2683f;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;}
+  header{padding:18px 24px; background:#1c1a16; border-bottom:1px solid var(--line); color:#fff; display:flex; align-items:center; justify-content:space-between;}
+  .brand{display:flex; align-items:center; gap:10px;}
+  .logo{width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,var(--accent),#e2683f);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;color:#1a1712;}
+  header h1{font-size:16px; margin:0;}
+  header small{opacity:.7; font-size:12px;}
+  #logoutBtn{background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.2); color:#fff; padding:7px 14px; border-radius:10px; cursor:pointer; font-size:13px;}
+
+  .auth-wrap{max-width:380px; margin:80px auto; padding:0 20px;}
+  .auth-card{background:var(--card); border:1px solid var(--line); border-radius:16px; padding:28px;}
+  .auth-card h2{margin:0 0 4px; font-size:20px;}
+  .auth-card p.hint{color:var(--muted); font-size:13px; margin:0 0 20px;}
+  label{display:block; font-size:12px; font-weight:600; color:var(--muted); margin:14px 0 6px;}
+  input, select, textarea{
+    width:100%; padding:10px 12px; border:1px solid var(--line); border-radius:10px; font-size:14px; font-family:inherit;
+    background:var(--bg); color:var(--ink);
+  }
+  textarea{resize:vertical; min-height:60px;}
+  .btn{padding:10px 16px; border-radius:10px; border:none; font-size:14px; font-weight:600; cursor:pointer;}
+  .btn-primary{background:var(--accent); color:#1a1712; width:100%; margin-top:18px;}
+  .btn-secondary{background:#2a2722; color:var(--ink); border:1px solid var(--line);}
+  .btn-danger{background:var(--danger); color:#1a1712;}
+  .link-btn{background:none; border:none; color:var(--accent); font-size:13px; cursor:pointer; padding:0; margin-top:14px;}
+  .msg{font-size:13px; margin-top:12px; padding:10px; border-radius:8px;}
+  .msg.error{background:#3a2420; color:#f0a894;}
+  .msg.ok{background:#20342b; color:#7fd9a2;}
+
+  main{max-width:760px; margin:0 auto; padding:20px;}
+  .empty{color:var(--muted); font-size:13px; padding:20px; text-align:center;}
+  .biz-card{background:var(--card); border:1px solid var(--line); border-radius:16px; padding:18px; margin-bottom:20px;}
+  .biz-card h2{margin:0 0 2px; font-size:18px;}
+  .biz-card .meta{color:var(--muted); font-size:12.5px; margin-bottom:16px;}
+  .section-label{font-size:12px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.04em; margin:18px 0 8px;}
+  img.thumb{width:56px; height:56px; border-radius:8px; object-fit:cover; background:#2a2722;}
+  .cover-preview{width:100%; height:140px; object-fit:cover; border-radius:10px; margin-bottom:8px; background:#2a2722;}
+  .gallery-thumbs{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:8px;}
+  .gallery-thumb-wrap{position:relative;}
+  .del-thumb{position:absolute; top:-6px; right:-6px; width:18px; height:18px; border-radius:999px; background:var(--danger); border:none; color:#fff; font-size:11px; line-height:1; cursor:pointer;}
+  .status-note{font-size:11px; color:var(--muted); margin-top:4px;}
+
+  table{width:100%; border-collapse:collapse; background:var(--bg); border-radius:10px; overflow:hidden; border:1px solid var(--line); margin-top:6px;}
+  th, td{text-align:left; padding:9px 10px; font-size:13px; border-bottom:1px solid var(--line);}
+  th{background:#0f0d0b; color:var(--muted); font-weight:600; text-transform:uppercase; font-size:10.5px;}
+  tr:last-child td{border-bottom:none;}
+  .row-actions{display:flex; gap:6px;}
+  .row-actions button{padding:5px 10px; font-size:12px; border-radius:8px; border:1px solid var(--line); background:var(--card); color:var(--ink); cursor:pointer;}
+  .row-actions button.danger{color:var(--danger); border-color:#5a352b;}
+
+  .modal-overlay{position:fixed; inset:0; background:rgba(0,0,0,.6); display:none; align-items:center; justify-content:center; z-index:30; padding:20px;}
+  .modal-overlay.open{display:flex;}
+  .modal{background:var(--card); border:1px solid var(--line); border-radius:16px; padding:24px; width:100%; max-width:400px; max-height:88vh; overflow-y:auto;}
+  .modal-actions{display:flex; gap:8px; margin-top:20px;}
+  .modal-actions .btn{flex:1;}
+</style>
+</head>
+<body>
+
+<div id="authScreen" class="auth-wrap">
+  <div class="auth-card">
+    <h2>Nook İşletmeci</h2>
+    <p class="hint" id="authHint">Devam etmek için giriş yapın.</p>
+    <label>E-posta</label>
+    <input type="email" id="authEmail" placeholder="ornek@eposta.com" />
+    <label>Şifre</label>
+    <input type="password" id="authPassword" placeholder="••••••••" />
+    <button class="btn btn-primary" id="signInBtn">Giriş yap</button>
+    <button class="link-btn" id="toggleSignUp">Hesabınız yok mu? Kayıt olun</button>
+    <div id="authMsg"></div>
+  </div>
+</div>
+
+<div id="app" style="display:none;">
+  <header>
+    <div class="brand">
+      <div class="logo">N</div>
+      <div><h1>Nook İşletmeci</h1><small id="whoami"></small></div>
+    </div>
+    <button id="logoutBtn">Çıkış yap</button>
+  </header>
+  <main id="mainBody">
+    <div class="empty">Yükleniyor...</div>
+  </main>
+</div>
+
+<div class="modal-overlay" id="menuModalOverlay">
+  <div class="modal">
+    <h3 id="menuModalTitle">Menü kalemi ekle</h3>
+    <form id="menuForm">
+      <label>Ad</label>
+      <input type="text" name="title" required>
+      <label>Açıklama</label>
+      <textarea name="description"></textarea>
+      <label>Fiyat</label>
+      <input type="number" name="price" step="0.01">
+      <div class="modal-actions">
+        <button class="btn btn-secondary" type="button" id="menuModalCancel">Vazgeç</button>
+        <button class="btn btn-primary" type="submit">Kaydet</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+const SUPABASE_URL = 'https://iwkoxixoyjaxqsbjsjak.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_biY8I92YYNjwhG7gsff_yw_Sj8etOmt';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+let isSignUpMode = false;
+let session = null;
+let myBusinesses = [];
+let editingMenu = null; // {bizId, menu|null}
+
+document.getElementById('toggleSignUp').onclick = () => {
+  isSignUpMode = !isSignUpMode;
+  document.getElementById('authHint').textContent = isSignUpMode
+    ? 'Kayıt sonrası admin sizi bir mekana sahip olarak atayabilir.'
+    : 'Devam etmek için giriş yapın.';
+  document.getElementById('signInBtn').textContent = isSignUpMode ? 'Kayıt ol' : 'Giriş yap';
+  document.getElementById('toggleSignUp').textContent = isSignUpMode ? 'Zaten hesabınız var mı? Giriş yapın' : 'Hesabınız yok mu? Kayıt olun';
+};
+
+document.getElementById('signInBtn').onclick = async () => {
+  const email = document.getElementById('authEmail').value.trim();
+  const password = document.getElementById('authPassword').value;
+  const msg = document.getElementById('authMsg');
+  msg.innerHTML = '';
+  if(!email || !password){ msg.innerHTML = `<div class="msg error">E-posta ve şifre gerekli.</div>`; return; }
+  const { data, error } = isSignUpMode
+    ? await sb.auth.signUp({ email, password })
+    : await sb.auth.signInWithPassword({ email, password });
+  if(error){ msg.innerHTML = `<div class="msg error">${error.message}</div>`; return; }
+  if(isSignUpMode && data.user && !data.session){
+    msg.innerHTML = `<div class="msg ok">Kayıt oluşturuldu. Şimdi admin ile iletişime geçip bir mekana sahip olarak atanmanızı isteyin.</div>`;
+    return;
+  }
+  await onAuthed();
+};
+
+document.getElementById('logoutBtn').onclick = async () => {
+  await sb.auth.signOut();
+  location.reload();
+};
+
+async function onAuthed(){
+  const { data: { session: s } } = await sb.auth.getSession();
+  session = s;
+  if(!session) return;
+  document.getElementById('authScreen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  document.getElementById('whoami').textContent = session.user.email;
+  await loadMyBusinesses();
+}
+
+(async () => {
+  const { data: { session: s } } = await sb.auth.getSession();
+  if(s){ await onAuthed(); }
+})();
+
+async function loadMyBusinesses(){
+  const { data, error } = await sb.from('businesses').select('*').eq('owner_id', session.user.id).order('name');
+  const main = document.getElementById('mainBody');
+  if(error){ main.innerHTML = `<div class="empty">Yüklenemedi: ${error.message}</div>`; return; }
+  myBusinesses = data || [];
+  if(!myBusinesses.length){
+    main.innerHTML = `<div class="empty">Sahibi olduğunuz bir mekan bulunamadı. Nook yöneticisiyle iletişime geçip bu hesabı (${session.user.email}) bir mekana sahip olarak atamasını isteyin.</div>`;
+    return;
+  }
+  main.innerHTML = myBusinesses.map(biz => `
+    <div class="biz-card" data-biz="${biz.id}">
+      <h2>${biz.name}</h2>
+      <div class="meta">${biz.category || ''} ${biz.is_active ? '' : '· <span style="color:var(--danger);">erişimi admin tarafından engellenmiş</span>'}</div>
+
+      <div class="section-label">Kapak görseli</div>
+      ${biz.image_url ? `<img class="cover-preview" src="${biz.image_url}">` : ''}
+      <input type="file" accept="image/*" data-cover-for="${biz.id}">
+      <div class="status-note" data-cover-status="${biz.id}"></div>
+
+      <div class="section-label">Galeri</div>
+      <div class="gallery-thumbs" data-gallery-for="${biz.id}">
+        ${(biz.gallery||[]).map((u,i)=>`
+          <div class="gallery-thumb-wrap">
+            <img class="thumb" src="${u}">
+            <button class="del-thumb" data-gal-del="${biz.id}" data-idx="${i}">✕</button>
+          </div>`).join('') || '<span style="font-size:12px;color:var(--muted);">Henüz galeri görseli yok</span>'}
+      </div>
+      <input type="file" accept="image/*" multiple data-gallery-input-for="${biz.id}">
+      <div class="status-note" data-gallery-status="${biz.id}"></div>
+
+      <div class="section-label">Menü</div>
+      <div data-menu-table="${biz.id}"><div class="empty">Menü yükleniyor...</div></div>
+      <button class="btn btn-secondary" style="margin-top:10px;" data-add-menu="${biz.id}">+ Menü kalemi ekle</button>
+    </div>
+  `).join('');
+
+  wireBusinessCard();
+  myBusinesses.forEach(biz => loadMenuFor(biz.id));
+}
+
+function wireBusinessCard(){
+  document.querySelectorAll('[data-cover-for]').forEach(input => {
+    input.onchange = async () => {
+      const file = input.files[0];
+      if(!file) return;
+      const bizId = Number(input.dataset.coverFor);
+      const statusEl = document.querySelector(`[data-cover-status="${bizId}"]`);
+      statusEl.textContent = 'Yükleniyor...';
+      const path = `${Date.now()}_${file.name}`;
+      const { error: upErr } = await sb.storage.from('business-images').upload(path, file);
+      if(upErr){ statusEl.textContent = 'Hata: ' + upErr.message; return; }
+      const { data: pub } = sb.storage.from('business-images').getPublicUrl(path);
+      const { error } = await sb.from('businesses').update({ image_url: pub.publicUrl }).eq('id', bizId);
+      if(error){ statusEl.textContent = 'Kaydedilemedi: ' + error.message; return; }
+      statusEl.textContent = 'Kaydedildi ✓';
+      await loadMyBusinesses();
+    };
+  });
+
+  document.querySelectorAll('[data-gallery-input-for]').forEach(input => {
+    input.onchange = async () => {
+      const files = [...input.files];
+      if(!files.length) return;
+      const bizId = Number(input.dataset.galleryInputFor);
+      const statusEl = document.querySelector(`[data-gallery-status="${bizId}"]`);
+      statusEl.textContent = `${files.length} görsel yükleniyor...`;
+      const biz = myBusinesses.find(b => b.id === bizId);
+      const current = [...(biz.gallery || [])];
+      for(const file of files){
+        const path = `${Date.now()}_${file.name}`;
+        const { error: upErr } = await sb.storage.from('business-images').upload(path, file);
+        if(upErr){ statusEl.textContent = 'Hata: ' + upErr.message; continue; }
+        const { data: pub } = sb.storage.from('business-images').getPublicUrl(path);
+        current.push(pub.publicUrl);
+      }
+      const { error } = await sb.from('businesses').update({ gallery: current }).eq('id', bizId);
+      if(error){ statusEl.textContent = 'Kaydedilemedi: ' + error.message; return; }
+      statusEl.textContent = 'Kaydedildi ✓';
+      await loadMyBusinesses();
+    };
+  });
+
+  document.querySelectorAll('[data-gal-del]').forEach(btn => {
+    btn.onclick = async () => {
+      const bizId = Number(btn.dataset.galDel);
+      const idx = Number(btn.dataset.idx);
+      const biz = myBusinesses.find(b => b.id === bizId);
+      const updated = (biz.gallery || []).filter((_,i) => i !== idx);
+      await sb.from('businesses').update({ gallery: updated }).eq('id', bizId);
+      await loadMyBusinesses();
+    };
+  });
+
+  document.querySelectorAll('[data-add-menu]').forEach(btn => {
+    btn.onclick = () => openMenuModal(Number(btn.dataset.addMenu), null);
+  });
+}
+
+async function loadMenuFor(bizId){
+  const { data } = await sb.from('menus').select('*').eq('business_id', bizId).order('title');
+  const wrap = document.querySelector(`[data-menu-table="${bizId}"]`);
+  if(!data || !data.length){
+    wrap.innerHTML = `<div class="empty">Henüz menü kalemi yok.</div>`;
+    return;
+  }
+  wrap.innerHTML = `<table><thead><tr><th>Ad</th><th>Fiyat</th><th></th></tr></thead>
+    <tbody>${data.map(m => `
+      <tr>
+        <td>${m.title}</td>
+        <td>${m.price ?? ''}</td>
+        <td class="row-actions">
+          <button data-edit-menu="${m.id}">Düzenle</button>
+          <button class="danger" data-del-menu="${m.id}">Sil</button>
+        </td>
+      </tr>`).join('')}</tbody></table>`;
+  wrap.querySelectorAll('[data-edit-menu]').forEach(b => b.onclick = () => {
+    const menu = data.find(m => m.id === Number(b.dataset.editMenu));
+    openMenuModal(bizId, menu);
+  });
+  wrap.querySelectorAll('[data-del-menu]').forEach(b => b.onclick = async () => {
+    if(!confirm('Bu menü kalemini silmek istediğinize emin misiniz?')) return;
+    await sb.from('menus').delete().eq('id', Number(b.dataset.delMenu));
+    loadMenuFor(bizId);
+  });
+}
+
+function openMenuModal(bizId, menu){
+  editingMenu = { bizId, menu };
+  document.getElementById('menuModalTitle').textContent = menu ? 'Menü kalemi düzenle' : 'Menü kalemi ekle';
+  const form = document.getElementById('menuForm');
+  form.title.value = menu?.title || '';
+  form.description.value = menu?.description || '';
+  form.price.value = menu?.price ?? '';
+  document.getElementById('menuModalOverlay').classList.add('open');
+}
+document.getElementById('menuModalCancel').onclick = () => document.getElementById('menuModalOverlay').classList.remove('open');
+
+document.getElementById('menuForm').onsubmit = async (e) => {
+  e.preventDefault();
+  const form = e.target;
+  const payload = {
+    title: form.title.value.trim(),
+    description: form.description.value.trim() || null,
+    price: form.price.value === '' ? null : Number(form.price.value),
+  };
+  const { bizId, menu } = editingMenu;
+  let error;
+  if(menu){
+    ({ error } = await sb.from('menus').update(payload).eq('id', menu.id));
+  } else {
+    payload.business_id = bizId;
+    ({ error } = await sb.from('menus').insert(payload));
+  }
+  if(error){ alert('Kaydedilemedi: ' + error.message); return; }
+  document.getElementById('menuModalOverlay').classList.remove('open');
+  loadMenuFor(bizId);
+};
+</script>
+</body>
+</html>
