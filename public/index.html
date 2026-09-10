@@ -127,6 +127,17 @@
   .overlay{position:fixed; inset:0; background:rgba(8,7,6,.7); display:none; align-items:flex-end; justify-content:center; z-index:20;}
   .overlay.open{display:flex;}
   .overlay.center{align-items:center;}
+
+  .lightbox{background:rgba(6,5,4,.96); align-items:center; z-index:50; padding:20px;}
+  .lightbox img{max-width:100%; max-height:90vh; object-fit:contain; border-radius:8px;}
+  .lightbox-close{position:fixed; top:16px; right:16px; width:38px; height:38px; border-radius:999px; background:rgba(255,255,255,.1); border:none; color:#fff; display:flex; align-items:center; justify-content:center; cursor:pointer;}
+  .lightbox-nav{position:fixed; top:50%; transform:translateY(-50%); left:14px; width:42px; height:42px; border-radius:999px; background:rgba(255,255,255,.1); border:none; color:#fff; display:flex; align-items:center; justify-content:center; cursor:pointer;}
+  .lightbox-nav.right{left:auto; right:14px;}
+  .lightbox-count{position:fixed; bottom:20px; left:50%; transform:translateX(-50%); color:#fff; opacity:.7; font-size:12px;}
+
+  .gallery-row{display:flex; gap:8px; overflow-x:auto; margin-bottom:16px; -ms-overflow-style:none; scrollbar-width:none;}
+  .gallery-row::-webkit-scrollbar{display:none;}
+  .gallery-thumb{flex:none; width:110px; height:80px; border-radius:10px; background-size:cover; background-position:center; cursor:pointer; border:1px solid var(--line);}
   .sheet{
     background:var(--bg-soft); width:100%; max-width:560px; border-radius:22px 22px 0 0; overflow-y:auto; max-height:88vh;
     animation:up .2s ease-out; border:1px solid var(--line); border-bottom:none;
@@ -318,6 +329,21 @@
       <button class="close-btn" onclick="closeOverlay('myListsOverlay')">Kapat</button>
     </div>
   </div>
+</div>
+
+<!-- tam ekran fotoğraf -->
+<div class="overlay lightbox" id="lightboxOverlay">
+  <button class="lightbox-close" onclick="closeOverlay('lightboxOverlay')">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+  </button>
+  <button class="lightbox-nav" id="lightboxPrev" onclick="lightboxStep(-1)">
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+  </button>
+  <img id="lightboxImg" src="" alt="">
+  <button class="lightbox-nav right" id="lightboxNext" onclick="lightboxStep(1)">
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+  </button>
+  <div class="lightbox-count" id="lightboxCount"></div>
 </div>
 
 <!-- profil / görünen ad -->
@@ -671,8 +697,11 @@ document.getElementById('searchInput').addEventListener('input', () => {
 
 async function openSheet(id){
   const b = businesses.find(x=>x.id===id);
+  sheetImages = [b.image_url, ...(b.gallery||[])].filter(Boolean);
   document.getElementById('sheetSectionTitle').textContent = 'Menü';
-  document.getElementById('sheetCover').style.cssText = coverStyle(b);
+  const coverEl = document.getElementById('sheetCover');
+  coverEl.style.cssText = coverStyle(b) + '; cursor:pointer;';
+  coverEl.onclick = () => openLightbox(sheetImages, 0);
   document.getElementById('sheetName').textContent = b.name;
   document.getElementById('sheetTags').innerHTML = `
     ${b.rating ? `<span class="rate">${starIcon(13)} ${b.rating}</span>` : ''}
@@ -698,9 +727,10 @@ async function openSheet(id){
         </div>
       `).join('')
     : `<div class="empty">Bu mekan için henüz menü eklenmemiş.</div>`;
-  document.getElementById('sheetMenu').innerHTML = menuHtml + mapRowHtml(b.lat, b.lng);
+  document.getElementById('sheetMenu').innerHTML = menuHtml + galleryRowHtml(sheetImages) + mapRowHtml(b.lat, b.lng);
 }
 document.getElementById('overlay').addEventListener('click', e => { if(e.target.id==='overlay') closeOverlay('overlay'); });
+document.getElementById('lightboxOverlay').addEventListener('click', e => { if(e.target.id==='lightboxOverlay') closeOverlay('lightboxOverlay'); });
 
 // ---------- Gezilecek Yerler ----------
 function attractionCardHtml(a){
@@ -743,8 +773,11 @@ function renderAttractionsGrid(){
 
 function openAttractionSheet(id){
   const a = attractions.find(x=>x.id===id);
+  sheetImages = [a.cover_image_url, ...(a.gallery||[])].filter(Boolean);
   document.getElementById('sheetSectionTitle').textContent = 'Hikaye';
-  document.getElementById('sheetCover').style.cssText = attrCoverStyle(a);
+  const coverEl = document.getElementById('sheetCover');
+  coverEl.style.cssText = attrCoverStyle(a) + '; cursor:pointer;';
+  coverEl.onclick = () => openLightbox(sheetImages, 0);
   document.getElementById('sheetName').textContent = a.name;
   document.getElementById('sheetTags').innerHTML = `
     <span>${ATTR_CATEGORY_ICON[a.category]||''} ${a.category||''}</span>
@@ -752,16 +785,13 @@ function openAttractionSheet(id){
     <span>·</span><span>${icon('mapPin',13)} ${cityName(a.city_id)}, ${countryOfCity(a.city_id)}</span>
   `;
   document.getElementById('sheetDesc').textContent = a.short_description || '';
-  const gallery = a.gallery && a.gallery.length
-    ? `<div class="featured-row" style="margin-top:2px;">${a.gallery.map(u=>`<div class="feat-card" style="width:200px;height:130px;background-image:url('${u}')"></div>`).join('')}</div>`
-    : '';
   const storyHtml = (a.story || 'Bu yer için henüz bir hikaye eklenmemiş.')
     .split(/\n\s*\n/)
     .map(p => `<p style="font-size:14px; line-height:1.7; color:var(--ink); margin:0 0 14px;">${p.trim()}</p>`)
     .join('');
   document.getElementById('sheetMenu').innerHTML = `
     ${storyHtml}
-    ${gallery}
+    ${galleryRowHtml(sheetImages)}
     ${mapRowHtml(a.lat, a.lng)}
   `;
   openOverlay('overlay');
@@ -770,6 +800,34 @@ function openAttractionSheet(id){
 function mapRowHtml(lat, lng){
   if(!lat || !lng) return '';
   return `<button class="map-directions-btn" onclick="getDirections(${lat}, ${lng})">${icon('navigation',14)} Yol tarifi al</button>`;
+}
+
+function galleryRowHtml(images){
+  const extra = images.slice(1);
+  if(!extra.length) return '';
+  return `<div class="gallery-row">${extra.map((u,i)=>`<div class="gallery-thumb" style="background-image:url('${u}')" onclick="openLightbox(sheetImages, ${i+1})"></div>`).join('')}</div>`;
+}
+
+// ---------- tam ekran fotoğraf görüntüleyici ----------
+let sheetImages = [];
+let lightboxIndex = 0;
+function openLightbox(images, startIndex){
+  if(!images || !images.length) return;
+  sheetImages = images;
+  lightboxIndex = startIndex;
+  renderLightbox();
+  openOverlay('lightboxOverlay');
+}
+function renderLightbox(){
+  document.getElementById('lightboxImg').src = sheetImages[lightboxIndex];
+  const multi = sheetImages.length > 1;
+  document.getElementById('lightboxPrev').style.display = multi ? 'flex' : 'none';
+  document.getElementById('lightboxNext').style.display = multi ? 'flex' : 'none';
+  document.getElementById('lightboxCount').textContent = multi ? `${lightboxIndex+1} / ${sheetImages.length}` : '';
+}
+function lightboxStep(dir){
+  lightboxIndex = (lightboxIndex + dir + sheetImages.length) % sheetImages.length;
+  renderLightbox();
 }
 
 function getDirections(lat, lng){

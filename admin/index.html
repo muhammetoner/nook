@@ -217,7 +217,7 @@ const ENTITIES = {
   },
   businesses: {
     label:'Mekanlar', table:'businesses',
-    columns:[{key:'name', label:'Ad'}, {key:'city_id', label:'Şehir', ref:'cities'}, {key:'category', label:'Kategori'}, {key:'rating', label:'Puan'}, {key:'price_level', label:'₺'}, {key:'featured', label:'Öne Çıkan'}, {key:'image_url', label:'Görsel', img:true}],
+    columns:[{key:'name', label:'Ad'}, {key:'city_id', label:'Şehir', ref:'cities'}, {key:'category', label:'Kategori'}, {key:'rating', label:'Puan'}, {key:'price_level', label:'₺'}, {key:'featured', label:'Öne Çıkan'}, {key:'owner_id', label:'Sahip', owner:true}, {key:'image_url', label:'Görsel', img:true}],
     fields:[
       {name:'name', label:'Ad', type:'text', required:true},
       {name:'city_id', label:'Şehir', type:'select', ref:'cities', required:true},
@@ -227,7 +227,9 @@ const ENTITIES = {
       {name:'price_level', label:'Fiyat seviyesi (1-3)', type:'number', min:1, max:3},
       {name:'featured', label:'Öne çıkan mekan', type:'checkbox'},
       {name:'moods', label:'Ruh hali etiketleri', type:'multiselect', options:['Romantik','Sessiz Çalışma','Arkadaşlarla','Aile ile','Manzaralı','Gece Sohbeti','Hızlı Atıştırma']},
-      {name:'image_url', label:'Görsel', type:'image', bucket:'business-images'},
+      {name:'image_url', label:'Kapak görseli', type:'image', bucket:'business-images'},
+      {name:'gallery', label:'Ek galeri görselleri', type:'imagelist', bucket:'business-images'},
+      {name:'owner_id', label:'İşletme sahibi (e-posta)', type:'ownerLookup'},
       {name:'lat', label:'Enlem (lat)', type:'number', step:'0.000001'},
       {name:'lng', label:'Boylam (lng)', type:'number', step:'0.000001'},
     ],
@@ -293,11 +295,16 @@ async function autoFillCities(country){
   if(activeTab === 'cities') loadTab('cities');
 }
 
+let profilesCache = [];
 async function loadTab(tab){
   activeTab = tab;
   const conf = ENTITIES[tab];
   document.getElementById('panelTitle').textContent = conf.label;
   await loadRefs();
+  if(conf.columns.some(c => c.owner) || conf.fields.some(f => f.type==='ownerLookup')){
+    const { data } = await sb.rpc('admin_list_profiles');
+    profilesCache = data || [];
+  }
   const { data, error } = await sb.from(conf.table).select('*').order('id', {ascending:false});
   const wrap = document.getElementById('tableWrap');
   if(error){ wrap.innerHTML = `<div class="empty">Yüklenemedi: ${error.message}</div>`; return; }
@@ -308,6 +315,7 @@ async function loadTab(tab){
       <tr data-id="${row.id}">
         ${conf.columns.map(c => {
           if(c.img) return `<td>${row[c.key] ? `<img class="thumb" src="${row[c.key]}">` : '—'}</td>`;
+          if(c.owner) return `<td>${profilesCache.find(p=>p.id===row[c.key])?.email ?? '—'}</td>`;
           if(c.ref) return `<td>${refLabel(c.ref, row[c.key])}</td>`;
           if(typeof row[c.key] === 'boolean') return `<td>${row[c.key] ? '⭐ Evet' : '—'}</td>`;
           return `<td>${row[c.key] ?? ''}</td>`;
@@ -379,6 +387,11 @@ function openModal(row){
         ${val ? `<img class="thumb" style="margin-top:8px" src="${val}">` : ''}
         <div style="font-size:11px;color:var(--muted);margin-top:4px;" data-upload-status="${f.name}"></div>`;
     }
+    if(f.type === 'ownerLookup'){
+      return `<label>${f.label}</label>
+        <input type="email" name="${f.name}" data-owner-lookup placeholder="ornek@eposta.com" value="">
+        <div style="font-size:11px;color:var(--muted);margin-top:4px;">Boş bırakırsanız sahiplik kaldırılır. Kullanıcı önce sitede kayıt olmuş olmalı.</div>`;
+    }
     if(f.type === 'imagelist'){
       const existing = (row && row[f.name]) || [];
       return `<label>${f.label}</label>
@@ -435,16 +448,24 @@ function openModal(row){
     };
   });
 
+  const ownerInput = form.querySelector('[data-owner-lookup]');
+  if(ownerInput && row && row.owner_id){
+    const p = profilesCache.find(x => x.id === row.owner_id);
+    if(p) ownerInput.value = p.email;
+  }
+
   document.getElementById('modalOverlay').classList.add('open');
 
   form.onsubmit = async (e) => {
     e.preventDefault();
     const fd = new FormData(form);
     const payload = {};
+    let ownerEmail = null, hasOwnerField = false;
     conf.fields.forEach(f => {
       if(f.type === 'checkbox'){ payload[f.name] = fd.get(f.name) === 'on'; return; }
       if(f.type === 'multiselect'){ payload[f.name] = fd.getAll(f.name); return; }
       if(f.type === 'imagelist'){ payload[f.name] = JSON.parse(fd.get(f.name) || '[]'); return; }
+      if(f.type === 'ownerLookup'){ hasOwnerField = true; ownerEmail = fd.get(f.name).trim(); return; }
       let v = fd.get(f.name);
       if((f.type === 'select' && f.ref) || f.name.endsWith('_id')) v = v ? Number(v) : null;
       if(f.type === 'number') v = v === '' ? null : Number(v);
@@ -452,6 +473,15 @@ function openModal(row){
       if(f.type === 'image' && v === '') v = null;
       payload[f.name] = v;
     });
+    if(hasOwnerField){
+      if(!ownerEmail){
+        payload.owner_id = null;
+      } else {
+        const prof = profilesCache.find(p => p.email === ownerEmail);
+        if(!prof){ alert('Bu e-postayla kayıtlı bir kullanıcı bulunamadı. Kullanıcı önce sitede bir kere kayıt olmalı.'); return; }
+        payload.owner_id = prof.id;
+      }
+    }
     const conf2 = ENTITIES[activeTab];
     if(row){
       const { error } = await sb.from(conf2.table).update(payload).eq('id', row.id);
