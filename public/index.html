@@ -442,6 +442,34 @@ function escapeHtml(str){
   return String(str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 
+// Kart puanı: gerçek kullanıcı yorumu varsa onların ortalaması, yoksa admin'in başlangıç puanı
+function applyReviewRatings(reviewRows){
+  const sums = {};
+  (reviewRows||[]).forEach(r => {
+    const s = sums[r.business_id] || (sums[r.business_id] = {sum:0, count:0});
+    s.sum += r.rating; s.count += 1;
+  });
+  businesses.forEach(b => {
+    b.baseRating = b.rating; // admin'in başlangıç puanı (hiç yorum yoksa yedek olarak kullanılır)
+    const s = sums[b.id];
+    b.reviewCount = s ? s.count : 0;
+    b.rating = s ? Math.round((s.sum / s.count) * 10) / 10 : b.baseRating;
+  });
+  businesses.sort((x,y) => (y.rating||0) - (x.rating||0));
+}
+
+function refreshBusinessRatingFromCache(id){
+  const b = businesses.find(x=>x.id===id);
+  if(!b) return;
+  const reviews = reviewsCache[id] || [];
+  b.reviewCount = reviews.length;
+  b.rating = reviews.length
+    ? Math.round((reviews.reduce((s,r)=>s+r.rating,0)/reviews.length) * 10) / 10
+    : b.baseRating;
+  businesses.sort((x,y) => (y.rating||0) - (x.rating||0));
+  if(currentView === 'discover') renderGrid(); else renderFeatured();
+}
+
 const CATEGORIES = ['Tümü','Yemek','Kafe','Restoran','Bar','Tatlıcı','Kahvaltı'];
 const CATEGORY_ICON = {'Yemek':'🍢','Kafe':'☕','Restoran':'🍽️','Bar':'🍸','Tatlıcı':'🍮','Kahvaltı':'🥐'};
 const MOODS = ['Romantik','Sessiz Çalışma','Arkadaşlarla','Aile ile','Manzaralı','Gece Sohbeti','Hızlı Atıştırma'];
@@ -479,11 +507,12 @@ function openOverlay(id){ document.getElementById(id).classList.add('open'); }
 // ---------- veri yükleme ----------
 async function loadData(){
   const badge = document.getElementById('statusBadge');
-  const [{data:c, error:e1}, {data:ci, error:e2}, {data:b, error:e3}, {data:a, error:e4}] = await Promise.all([
+  const [{data:c, error:e1}, {data:ci, error:e2}, {data:b, error:e3}, {data:a, error:e4}, {data:rv, error:e5}] = await Promise.all([
     sb.from('countries').select('*').order('name'),
     sb.from('cities').select('*').order('name'),
-    sb.from('businesses').select('*').order('rating', {ascending:false}),
+    sb.from('businesses').select('*'),
     sb.from('attractions').select('*').order('name'),
+    sb.from('reviews').select('business_id, rating'),
   ]);
   if(e1||e2||e3||e4){
     badge.textContent = '🔴 Supabase\'e bağlanılamadı';
@@ -491,6 +520,7 @@ async function loadData(){
     return;
   }
   countries = c; cities = ci; businesses = b; attractions = a;
+  applyReviewRatings(e5 ? [] : rv);
   const activeCityCount = cities.filter(c => businesses.some(b => b.city_id === c.id)).length;
   badge.textContent = `🟢 canlı — ${businesses.length} mekan, ${attractions.length} gezilecek yer, ${activeCityCount} şehir`;
   renderTabs();
@@ -858,6 +888,7 @@ document.getElementById('reviewSubmitBtn').onclick = async () => {
   delete reviewsCache[reviewSheetBusinessId];
   closeOverlay('reviewOverlay');
   await loadAndRenderReviews(reviewSheetBusinessId);
+  refreshBusinessRatingFromCache(reviewSheetBusinessId);
 };
 document.getElementById('reviewDeleteBtn').onclick = async () => {
   if(!session || !reviewSheetBusinessId) return;
@@ -866,6 +897,7 @@ document.getElementById('reviewDeleteBtn').onclick = async () => {
   delete reviewsCache[reviewSheetBusinessId];
   closeOverlay('reviewOverlay');
   await loadAndRenderReviews(reviewSheetBusinessId);
+  refreshBusinessRatingFromCache(reviewSheetBusinessId);
 };
 document.getElementById('reviewOverlay').addEventListener('click', e => { if(e.target.id==='reviewOverlay') closeOverlay('reviewOverlay'); });
 document.getElementById('overlay').addEventListener('click', e => { if(e.target.id==='overlay') closeOverlay('overlay'); });
