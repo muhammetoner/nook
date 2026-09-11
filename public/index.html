@@ -166,6 +166,16 @@
   }
   .map-directions-btn:hover{border-color:var(--gold); color:var(--gold);}
 
+  .review-summary{display:flex; align-items:center; gap:6px; font-size:15px; font-weight:700; color:var(--gold);}
+  .review-item{padding:12px 0; border-top:1px solid var(--line);}
+  .review-item:first-of-type{border-top:none;}
+  .review-head{display:flex; align-items:center; gap:7px; font-size:12px; color:var(--muted);}
+  .review-head .stars{display:flex; gap:1px;}
+  .review-author{font-weight:600; color:var(--ink);}
+  .review-comment{margin:6px 0 0; font-size:13px; color:var(--ink); line-height:1.5;}
+  .star-picker{display:flex; gap:8px; margin-top:2px;}
+  .star-picker span{cursor:pointer; color:var(--line);}
+
   label{display:block; font-size:12px; font-weight:600; color:var(--muted); margin:14px 0 6px;}
   input[type=text], input[type=email], input[type=password], textarea, select{
     width:100%; padding:10px 12px; border:1px solid var(--line); border-radius:10px; font-size:14px; font-family:inherit;
@@ -302,6 +312,23 @@
   </div>
 </div>
 
+<!-- değerlendirme yaz -->
+<div class="overlay center" id="reviewOverlay">
+  <div class="sheet">
+    <div class="sheet-body">
+      <h2>Değerlendirme yaz</h2>
+      <label>Puanın</label>
+      <div class="star-picker" id="reviewStarPicker"></div>
+      <label>Yorumun (opsiyonel)</label>
+      <textarea id="reviewComment" rows="3" placeholder="Deneyimini kısaca anlat..."></textarea>
+      <button class="btn-block" id="reviewSubmitBtn">Kaydet</button>
+      <button class="link-btn" id="reviewDeleteBtn" style="display:none; color:var(--coral);">Değerlendirmeyi sil</button>
+      <div id="reviewMsg"></div>
+      <button class="close-btn" onclick="closeOverlay('reviewOverlay')">Kapat</button>
+    </div>
+  </div>
+</div>
+
 <!-- koleksiyona ekle -->
 <div class="overlay center" id="addOverlay">
   <div class="sheet">
@@ -408,6 +435,12 @@ function icon(name, size=18, sw=2){
 function starIcon(size=13){
   return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="currentColor" stroke="none" style="vertical-align:-2px"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`;
 }
+function starRow(rating, size=13){
+  return Array.from({length:5}, (_,i) => `<span style="color:${i<rating?'var(--gold)':'var(--line)'}">${starIcon(size)}</span>`).join('');
+}
+function escapeHtml(str){
+  return String(str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
 
 const CATEGORIES = ['Tümü','Yemek','Kafe','Restoran','Bar','Tatlıcı','Kahvaltı'];
 const CATEGORY_ICON = {'Yemek':'🍢','Kafe':'☕','Restoran':'🍽️','Bar':'🍸','Tatlıcı':'🍮','Kahvaltı':'🥐'};
@@ -418,6 +451,9 @@ const ATTR_CATEGORY_ICON = {'Tarihi Mekan':'🏛️','Müze':'🖼️','Anıt':'
 
 let countries = [], cities = [], businesses = [], attractions = [];
 const menuCache = {};
+const reviewsCache = {};
+let reviewSheetBusinessId = null;
+let reviewRatingValue = 0;
 let activeCity = 'all';
 let activeCat = 'Tümü';
 let activeMood = 'Tümü';
@@ -739,8 +775,99 @@ async function openSheet(id){
         </div>
       `).join('')
     : `<div class="empty">Bu mekan için henüz menü eklenmemiş.</div>`;
-  document.getElementById('sheetMenu').innerHTML = menuHtml + galleryRowHtml(sheetImages) + mapRowHtml(b.lat, b.lng);
+  document.getElementById('sheetMenu').innerHTML = menuHtml + galleryRowHtml(sheetImages) + mapRowHtml(b.lat, b.lng) + `
+    <div class="menu-title" style="margin-top:22px;">Değerlendirmeler</div>
+    <div id="sheetReviews"><div class="empty">Yükleniyor...</div></div>
+  `;
+  await loadAndRenderReviews(id);
 }
+
+async function loadAndRenderReviews(id){
+  if(!reviewsCache[id]){
+    const { data } = await sb.from('reviews').select('*').eq('business_id', id).order('created_at', {ascending:false});
+    reviewsCache[id] = data || [];
+  }
+  const reviews = reviewsCache[id];
+  const userIds = [...new Set(reviews.map(r=>r.user_id))];
+  let names = {};
+  if(userIds.length){
+    const { data: profs } = await sb.rpc('public_display_names', { user_ids: userIds });
+    (profs||[]).forEach(p => names[p.id] = p.display_name);
+  }
+  const myReview = session ? reviews.find(r=>r.user_id===session.user.id) : null;
+  const avg = reviews.length ? reviews.reduce((s,r)=>s+r.rating,0)/reviews.length : null;
+
+  const summaryHtml = avg
+    ? `<div class="review-summary">${starIcon(15)} ${avg.toFixed(1)} <span style="color:var(--muted); font-weight:400; font-size:12.5px;">(${reviews.length} değerlendirme)</span></div>`
+    : `<div class="empty" style="padding:10px 0;">Henüz değerlendirme yapılmamış. İlk yorumu sen yaz!</div>`;
+
+  const actionLabel = !session ? 'Değerlendirmek için giriş yapın' : (myReview ? 'Değerlendirmeni düzenle' : 'Değerlendirme yaz');
+  const actionHtml = `<button class="link-btn" id="writeReviewBtn">${actionLabel}</button>`;
+
+  const listHtml = reviews.map(r => `
+    <div class="review-item">
+      <div class="review-head">
+        <span class="stars">${starRow(r.rating)}</span>
+        <span class="review-author">${session && r.user_id===session.user.id ? 'Siz' : escapeHtml(names[r.user_id] || 'Nook kullanıcısı')}</span>
+        <span>· ${new Date(r.created_at).toLocaleDateString('tr-TR')}</span>
+      </div>
+      ${r.comment ? `<p class="review-comment">${escapeHtml(r.comment)}</p>` : ''}
+    </div>
+  `).join('');
+
+  const container = document.getElementById('sheetReviews');
+  if(!container) return;
+  container.innerHTML = summaryHtml + actionHtml + listHtml;
+  const btn = document.getElementById('writeReviewBtn');
+  if(btn) btn.onclick = () => openReviewModal(id, myReview);
+}
+
+function renderStarPicker(selected){
+  const wrap = document.getElementById('reviewStarPicker');
+  wrap.innerHTML = [1,2,3,4,5].map(n => `<span data-star="${n}">${starIcon(24)}</span>`).join('');
+  wrap.querySelectorAll('[data-star]').forEach(el => {
+    const n = Number(el.dataset.star);
+    el.style.color = n<=selected ? 'var(--gold)' : 'var(--line)';
+    el.onclick = () => { reviewRatingValue = n; renderStarPicker(n); };
+  });
+}
+
+function openReviewModal(businessId, existing){
+  if(!session){ openOverlay('authOverlay'); return; }
+  reviewSheetBusinessId = businessId;
+  reviewRatingValue = existing?.rating || 0;
+  document.getElementById('reviewComment').value = existing?.comment || '';
+  document.getElementById('reviewMsg').textContent = '';
+  document.getElementById('reviewDeleteBtn').style.display = existing ? 'inline-block' : 'none';
+  renderStarPicker(reviewRatingValue);
+  openOverlay('reviewOverlay');
+}
+
+document.getElementById('reviewSubmitBtn').onclick = async () => {
+  if(!session || !reviewSheetBusinessId) return;
+  if(!reviewRatingValue){ document.getElementById('reviewMsg').textContent = 'Lütfen bir puan seç.'; return; }
+  const comment = document.getElementById('reviewComment').value.trim();
+  const { error } = await sb.from('reviews').upsert({
+    business_id: reviewSheetBusinessId,
+    user_id: session.user.id,
+    rating: reviewRatingValue,
+    comment: comment || null,
+    updated_at: new Date().toISOString(),
+  }, { onConflict: 'business_id,user_id' });
+  if(error){ document.getElementById('reviewMsg').textContent = 'Hata: ' + error.message; return; }
+  delete reviewsCache[reviewSheetBusinessId];
+  closeOverlay('reviewOverlay');
+  await loadAndRenderReviews(reviewSheetBusinessId);
+};
+document.getElementById('reviewDeleteBtn').onclick = async () => {
+  if(!session || !reviewSheetBusinessId) return;
+  const { error } = await sb.from('reviews').delete().eq('business_id', reviewSheetBusinessId).eq('user_id', session.user.id);
+  if(error){ document.getElementById('reviewMsg').textContent = 'Hata: ' + error.message; return; }
+  delete reviewsCache[reviewSheetBusinessId];
+  closeOverlay('reviewOverlay');
+  await loadAndRenderReviews(reviewSheetBusinessId);
+};
+document.getElementById('reviewOverlay').addEventListener('click', e => { if(e.target.id==='reviewOverlay') closeOverlay('reviewOverlay'); });
 document.getElementById('overlay').addEventListener('click', e => { if(e.target.id==='overlay') closeOverlay('overlay'); });
 document.getElementById('lightboxOverlay').addEventListener('click', e => { if(e.target.id==='lightboxOverlay') closeOverlay('lightboxOverlay'); });
 
