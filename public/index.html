@@ -733,7 +733,8 @@ async function openSheet(id){
   const menuHtml = items.length
     ? items.map(m => `
         <div class="menu-item">
-          <div><div class="name">${m.title}</div><div class="desc2">${m.description||''}</div></div>
+          ${m.image_url ? `<img class="thumb" style="width:44px;height:44px;flex:none;" src="${m.image_url}">` : ''}
+          <div style="flex:1;"><div class="name">${m.title}</div><div class="desc2">${m.description||''}</div></div>
           <div class="price2">${Number(m.price).toFixed(cur==='₺'?0:2)} ${cur}</div>
         </div>
       `).join('')
